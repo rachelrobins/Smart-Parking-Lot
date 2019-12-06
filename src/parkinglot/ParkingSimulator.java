@@ -24,26 +24,29 @@ public class ParkingSimulator extends JComponent {
 	 */
 	private static final long serialVersionUID = 1L;
 	ControllerExecutor executor;
-	boolean carSide;
-	boolean carExit;
+	
 	String counterSpot;
 	BufferedImage parkingBackground;
 	int carLeft;
 	int carRightX;
 	int carRightY;
-	int carMainY;
-	boolean carInQueue = false;
-	boolean carEnterance;
+	boolean carInQueueExit = false;
+
 	boolean carEnteranceFirst;
 	boolean carEnteranceSecond;
-	boolean ambulanceSide;
-	boolean greenSide;
-	boolean greenMain;
-	boolean carMain;
 	boolean carInParkingLot = false;
 	Random random = new Random();
 	boolean startMode = false;
-	int counter = 0;
+	boolean carEnterance;
+	
+	// phases of car
+	boolean carEnters;
+	boolean carInQueue = false;
+	boolean carParks = false;
+	boolean carPrepareToExit = false;
+	boolean carExit;
+	boolean alreadyP = false;
+	
 	// system values
 	boolean gateEnterance;
 	boolean gateExit;
@@ -51,10 +54,28 @@ public class ParkingSimulator extends JComponent {
 	
 	BufferedImage car;
 	BufferedImage ambulance;
-	BufferedImage gate;
+	BufferedImage gateOpen;
+	BufferedImage gateClose;
+	BufferedImage gateExitOpen;
+	BufferedImage gateExitClose;
 	
 	Thread thread;
-
+	
+	// this is going to be the API
+	private static void addCarEnterance()
+	{
+		// TODO we need to create Car class and update it
+//		carEnterance = true;
+	}
+	
+	// here we will add which car to remove
+	// TODO we need to receive id of car to remove
+	private static void removeCarFromParkingLot()
+	{
+//		carExit = true;
+	}
+	
+	
 	public ParkingSimulator() {
 		Thread animationThread = new Thread(new Runnable() {
 			public void run() {
@@ -65,45 +86,101 @@ public class ParkingSimulator extends JComponent {
 
 				while (true) {	
 					Map<String, String> sysValues;
+					//first simulation - car enters, parks and then exits
 					if(!startMode) {
-						carEnterance = random.nextInt(2) == 0 ? false : true;
+						carEnters = true;
+						carEnterance = false;
+						carExit = false;
+//						carEnterance = random.nextInt(2) == 0 ? false : true;
 						startMode = true;
 					}
 					else {
-						if(gateEnterance) {
-							carEnterance = random.nextInt(2) == 0 ? false : true;
+						if (gateEnterance && carInQueue)
+						{
+							carEnterance = false;
 						}
-						else if(carEnterance && !gateEnterance) {
-							carEnterance = carEnterance? true : false;	
+						else
+						{
+							carEnterance = carEnterance ? true : false;
 						}
-						else {
-							carEnterance = random.nextInt(2) == 0 ? false : true;
+						if (gateExit && carExit)
+						{
+							carExit = false;
 						}
+						// we will make car leave
+						else
+						{
+							carPrepareToExit = alreadyP ? false : true;
+							carExit = carExit ? true : false;
+							
+							// TODO - the line below is the one needed but we put true only for simulation
+//							carExit = carExit ? true : false;
+						}
+//						//first simulation - car enters, parks and then exits
+//						if(!carEnterance) 
+//						{
+//							carEnterance = true;
+//							carExit = false;	
+//						}
+//						else if(carExit)
+//						{
+//							carEnterance = true;
+//							carExit = true;
+//						}
+//						else 
+//						{
+//							carEnterance = false;
+//							carExit = true;
+//						}
 						
+//						if(gateEnterance) {
+//							carEnterance = random.nextInt(2) == 0 ? false : true;
+//						}
+//						else if(carEnterance && !gateEnterance) {
+//							carEnterance = carEnterance ? true : false;	
+//						}
+//						else {
+//							carEnterance = random.nextInt(2) == 0 ? false : true;
+//						}
+//						
+//						if(gateExit)
+//						{
+//							carExit = random.nextInt(2) == 0 ? false : true;
+//						}
+//						else
+//						{
+//							if(carExit)
+//							{
+//								carExit = true;
+//							}
+//							else 
+//							{
+//								carExit = random.nextInt(2) == 0 ? false : true;
+//							}
+//							
+//						}
 						
 						
 					}
 					try {
-						
-						carExit = false;
 						executor.updateState(true);
 					} catch (ControllerExecutorException e) {
 						e.printStackTrace();
 					}
 					sysValues = executor.getCurOutputs();
 					gateEnterance = sysValues.get("gateEnterance").equals("true") ? true : false;
-					System.out.println(gateEnterance);
+					System.out.println("gate enterance " + gateEnterance);
 					gateExit = sysValues.get("gateExit").equals("true") ? true : false;
-					System.out.println("gate exit is "+ gateExit);
 					counterSpot = sysValues.get("spotsCounter");
-					System.out.println(sysValues.get("gateExit"));
-					System.out.println("car exit is :" + carExit);
+//					System.out.println(sysValues.get("gateExit"));
+					System.out.println("gate exit is :" + gateExit);
+//					System.out.println("car exit is :" + carExit);
 
-					if(!carInQueue)
-					{
-						carRightX = 640 + 50;
-						carRightY = 159;					
-					}
+//					if(!carInQueue)
+//					{
+//						carRightX = 640 + 50;
+//						carRightY = 159;					
+//					}
 				
 					// Paint the street on the screen
 					paintParkingLot();
@@ -116,10 +193,13 @@ public class ParkingSimulator extends JComponent {
 		try {
 			carRightX = 640 + 50;
 			carRightY = 159;
-			car = ImageIO.read(new File("img/car.jpg"));
+			car = ImageIO.read(new File("img/car.png"));
 			ambulance = ImageIO.read(new File("img/ambulance.jpg"));
-			parkingBackground  = ImageIO.read(new File("img/picccccc.png"));
-			gate = ImageIO.read(new File("img/gategatw.png"));
+			parkingBackground  = ImageIO.read(new File("img/background.png"));
+			gateOpen = ImageIO.read(new File("img/gateOpen.png"));
+			gateClose = ImageIO.read(new File("img/gateClosed.png"));
+			gateExitOpen = ImageIO.read(new File("img/gateOpen.png"));
+			gateExitClose = ImageIO.read(new File("img/gateClosed.png"));
 			
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
@@ -132,62 +212,164 @@ public class ParkingSimulator extends JComponent {
 	
 	
 	private void paintParkingLot() {
-		System.out.println("here " + counter++);
 		System.out.println("counter is " + counterSpot);
 	
 		try {			
 			Thread.sleep(50);
-			// gate opened
-			if(gateEnterance)
+			System.out.println("At the start of paint");
+			System.out.println("carEnters:" + carEnters + " carInQueue:"+carInQueue+" carParks" + carParks + " carPrepare" +carPrepareToExit + " carExit" + carExit);
+			// paint relevant state by phase of car
+			// now we support only 1 car
+			if(carEnters)
 			{
-				if(carInQueue)
-				{
-					if(!carInParkingLot)
-					{
-						carRightX = 650;
-						for (int i = 0; i < 30; i++) {
-							repaint();
-							Thread.sleep(50);
-							carRightX--;
-						}	
-						// enters first parking spot
-						carInParkingLot = true;
-						Thread.sleep(50);
-					}
-					else
-					{
-						for (int i = 0; i < 30; i++) {
-							repaint();
-							Thread.sleep(50);
-							carRightX--;
-						}
-						Thread.sleep(50);
-						carInParkingLot = false;
-					}
+				System.out.println("Car enters parking lot..");
+				
+				for (int i = 0; i < 40; i++) {
+					repaint();
+					Thread.sleep(10);
+					carRightX--;
 				}
-				// car arriving to the gate
+				carEnters = false;
+				carInQueue = true;
+			}
+			else if(carInQueue)
+			{
+				System.out.println("Car waits in queue..");
+				// shouldn't move unless the gate is open
+				if (gateEnterance)
+				{
+					System.out.println("Car is entering!!!");
+					for (int i = 0; i < 150; i++) {
+						repaint();
+						Thread.sleep(10);
+						carRightX--;
+					}
+					carInQueue = false;
+					carParks = true;
+				}
+				else
+				{
+					carEnterance = true;
+				}
+				
+			}
+			else if(carParks)
+			{
+				System.out.println("Car parks..");
+				// TODO park the car for real
+				for (int i = 0; i < 150; i++) {
+					repaint();
+					Thread.sleep(10);
+					carRightX--;
+				}
+				carParks = false;
+			}
+			else if(carPrepareToExit)
+			{
+				System.out.println("Car prepares to leave..");
+				
 				for (int i = 0; i < 100; i++) {
 					repaint();
-					Thread.sleep(50);
+					Thread.sleep(10);
 					carRightX--;
 				}
 				Thread.sleep(50);
-				carInQueue = false;
+				carPrepareToExit = false;
+				alreadyP = true;
+				carExit = true;
 			}
-			else
+			else if(carExit)
 			{
-				if(carEnteranceFirst && !carInQueue)
+				System.out.println("Car waits to exit parking lot..");
+				// when gate is open the car exits
+				if(gateExit)
 				{
-					// car arriving to the gate
-					for (int i = 0; i < 40; i++) {
+					System.out.println("Car is exiting!!");
+					for (int i = 0; i < 190; i++) {
 						repaint();
-						Thread.sleep(50);
+						Thread.sleep(10);
 						carRightX--;
-					}
-					Thread.sleep(50);
-					carInQueue = true;
+					}					
 				}
+				
+				Thread.sleep(50);
+				
 			}
+//			// gate opened
+//			if(gateEnterance)
+//			{
+//				// car is waiting in queue
+//				if(carInQueue)
+//				{
+//					// car isn't parking
+//					if(!carInParkingLot)
+//					{
+////						carRightX = 650;
+//						for (int i = 0; i < 30; i++) {
+//							repaint();
+//							Thread.sleep(50);
+//							carRightX--;
+//						}	
+//						// enters first parking spot
+//						carInParkingLot = true;
+//						Thread.sleep(50);
+//					}
+//					// car is parking
+//					else
+//					{
+//						for (int i = 0; i < 200; i++) {
+//							repaint();
+//							Thread.sleep(50);
+//							carRightX--;
+//						}
+//						Thread.sleep(50);
+//						
+//						carInParkingLot = false;
+//					}
+//				}
+//				// car is not in queue == new car is arriving
+//				else
+//				{
+//					// car arriving to the gate
+//					for (int i = 0; i < 100; i++) {
+//						repaint();
+//						Thread.sleep(50);
+//						carRightX--;
+//					}
+//					Thread.sleep(50);
+//					carInQueue = true;					
+//				}
+//				
+//			}
+//			// entrance gate is closed
+//			else
+//			{
+//				// new car is arriving
+//				if(carEnterance && !carInQueue)
+//				{
+//					// car arriving to the gate
+//					for (int i = 0; i < 40; i++) {
+//						repaint();
+//						Thread.sleep(50);
+//						carRightX--;
+//					}
+//					Thread.sleep(50);
+//					carInQueue = true;
+//				}
+//			}
+//			//if car wants to exit and gate is open
+//			if(carExit && gateExit)
+//			{
+//				//car exits
+//				carRightX = 420;
+//				for (int i = 0; i < 300; i++) {
+//					repaint();
+//					Thread.sleep(50);
+//					carRightX--;
+//				}
+//				Thread.sleep(50);
+//				
+//			}
 			repaint();
 			Thread.sleep(1000);
 
@@ -202,14 +384,33 @@ public class ParkingSimulator extends JComponent {
 
 		g.drawImage(parkingBackground,0,0,null);
 		g.setColor(Color.CYAN);
-		g.drawImage(car, carRightX, carRightY, 60, 60, null);
+		g.drawImage(car, carRightX, carRightY, 95, 51, null);
 		if(!gateEnterance)
 		{
-			g.drawImage(gate, 610, carRightY, 36, 60, null);
+			g.drawImage(gateClose, 610, carRightY, 36, 60, null);
+		}
+		else
+		{
+			g.drawImage(gateOpen, 610, carRightY, 36, 60, null);
+		}
+		if(!gateExit)
+		{
+			g.drawImage(gateClose, 210, carRightY, 36, 60, null);
+		}
+		else
+		{
+			g.drawImage(gateOpen, 210, carRightY, 36, 60, null);
 		}
 		
 	}
 
+	private static void firstSimulation() throws Exception
+	{
+		addCarEnterance();
+		Thread.sleep(1000);
+		removeCarFromParkingLot();
+	}
+	
 	public static void main(String args[]) throws Exception {
 		JFrame f = new JFrame("Traffic Simulator");
 		f.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -217,5 +418,6 @@ public class ParkingSimulator extends JComponent {
 		ParkingSimulator traffic = new ParkingSimulator();
 		f.setContentPane(traffic);
 		f.setVisible(true);
+		firstSimulation();
 	}
 }
