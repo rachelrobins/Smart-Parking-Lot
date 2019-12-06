@@ -47,8 +47,6 @@ gar !gateVipEnterance;
 
 gar pRespondsToS(spotsCounter < 6 & carEnterance, gateEnterance);
 gar G gateEnterance -> ! next(gateEnterance);
-
 gar G gateExit -> ! next(gateExit);
 gar pRespondsToS(carExit, gateExit);
 
-//gar carEnterance -> spotLight[spotsCounter];
