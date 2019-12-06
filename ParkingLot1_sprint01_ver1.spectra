@@ -4,10 +4,10 @@ module ParkingLot
 //Environment controlled input variables (vehicles and pedestrians)
 env boolean carEnterance;
 env boolean carExit;
-env boolean carVipEntrance;
-env boolean carVipExit;
-env boolean pedestrianRight;
-env boolean pedestrianLeft;
+//env boolean carVipEntrance;
+//env boolean carVipExit;
+//env boolean pedestrianRight;
+//env boolean pedestrianLeft;
 
 //System controlled output variables (gates and lights)
 sys boolean gateEnterance;
@@ -20,7 +20,7 @@ sys boolean [8]spotLight;
 
 
 // assumptions
-asm G carEnterance -> ((next(carEnterance) = carEnterance)| gateEnterance);
+asm G carEnterance -> ((next(carEnterance) = carEnterance) | gateEnterance);
 
 // counts how many regular cars are currently in the parking lot
 counter spotsCounter(0..7) {
