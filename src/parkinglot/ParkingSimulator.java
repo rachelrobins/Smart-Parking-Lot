@@ -51,6 +51,9 @@ public class ParkingSimulator extends JComponent {
 	boolean gateEnterance;
 	boolean gateExit;
 	
+	//draw help vars
+	boolean carHorizontal = false;
+	
 	
 	BufferedImage car;
 	BufferedImage ambulance;
@@ -105,7 +108,7 @@ public class ParkingSimulator extends JComponent {
 						}
 						if (gateExit && carExit)
 						{
-							carExit = false;
+							carExit = carExit ? true : false;
 						}
 						// we will make car leave
 						else
@@ -255,20 +258,48 @@ public class ParkingSimulator extends JComponent {
 			}
 			else if(carParks)
 			{
+				carHorizontal = true;
 				System.out.println("Car parks..");
 				// TODO park the car for real
-				for (int i = 0; i < 150; i++) {
+				try
+				{
+					car = ImageIO.read(new File("img/carParks.png"));	
+				}
+				catch (Exception e)
+				{
+					//TODO
+				}
+				
+				
+				for (int i = 0; i < 120; i++) {
 					repaint();
 					Thread.sleep(10);
-					carRightX--;
+					carRightY--;
 				}
 				carParks = false;
 			}
 			else if(carPrepareToExit)
 			{
-				System.out.println("Car prepares to leave..");
 				
-				for (int i = 0; i < 100; i++) {
+				carHorizontal = true;
+
+				System.out.println("Car prepares to leave..");
+				for (int i = 0; i < 120; i++) {
+					repaint();
+					Thread.sleep(10);
+					carRightY++;
+				}
+				try
+				{
+					car = ImageIO.read(new File("img/car.png"));
+					carHorizontal = false;
+
+				}
+				catch (Exception e)
+				{
+//					//TODO
+				}
+				for (int i = 0; i < 255; i++) {
 					repaint();
 					Thread.sleep(10);
 					carRightX--;
@@ -289,7 +320,8 @@ public class ParkingSimulator extends JComponent {
 						repaint();
 						Thread.sleep(10);
 						carRightX--;
-					}					
+					}
+					carExit = false;
 				}
 				
 				Thread.sleep(50);
@@ -384,22 +416,30 @@ public class ParkingSimulator extends JComponent {
 
 		g.drawImage(parkingBackground,0,0,null);
 		g.setColor(Color.CYAN);
-		g.drawImage(car, carRightX, carRightY, 95, 51, null);
-		if(!gateEnterance)
+		if(!carHorizontal)
 		{
-			g.drawImage(gateClose, 610, carRightY, 36, 60, null);
+			g.drawImage(car, carRightX, carRightY, 95, 51, null);
 		}
 		else
 		{
-			g.drawImage(gateOpen, 610, carRightY, 36, 60, null);
+			g.drawImage(car, carRightX, carRightY, 51, 94, null);
+		}
+		
+		if(!gateEnterance)
+		{
+			g.drawImage(gateClose, 610, 159, 36, 60, null);
+		}
+		else
+		{
+			g.drawImage(gateOpen, 610, 159, 36, 60, null);
 		}
 		if(!gateExit)
 		{
-			g.drawImage(gateClose, 210, carRightY, 36, 60, null);
+			g.drawImage(gateClose, 210, 159, 36, 60, null);
 		}
 		else
 		{
-			g.drawImage(gateOpen, 210, carRightY, 36, 60, null);
+			g.drawImage(gateOpen, 210, 159, 36, 60, null);
 		}
 		
 	}
