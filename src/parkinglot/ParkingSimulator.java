@@ -2,6 +2,7 @@ package parkinglot;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.util.List;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -11,8 +12,15 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Random;
+
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+
+import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 
 import tau.smlab.syntech.executor.ControllerExecutor;
 import tau.smlab.syntech.executor.ControllerExecutorException;
@@ -62,20 +70,26 @@ public class ParkingSimulator extends JComponent {
 	BufferedImage gateExitOpen;
 	BufferedImage gateExitClose;
 	
+	static List<Car> carList = new LinkedList<Car>();
 	Thread thread;
 	
-	// this is going to be the API
-	private static void addCarEnterance()
+	// API
+	public static void addCarEnterance(int newCarID)
 	{
-		// TODO we need to create Car class and update it
-//		carEnterance = true;
+		Car car = new Car(newCarID);
+		carList.add(car);
 	}
 	
-	// here we will add which car to remove
-	// TODO we need to receive id of car to remove
-	private static void removeCarFromParkingLot()
+	public static void removeCarFromParkingLot(int carID)
 	{
-//		carExit = true;
+		for(Car car : carList)
+		{
+			if(car.getId() == carID)
+			{
+				car.updateState(CarStates.PREPARE_TO_EXIT);
+				return;
+			}
+		}
 	}
 	
 	
@@ -98,13 +112,14 @@ public class ParkingSimulator extends JComponent {
 						startMode = true;
 					}
 					else {
+						System.out.println("car enterance" + carEnterance);
 						if (gateEnterance && carInQueue)
 						{
 							carEnterance = false;
 						}
 						else
 						{
-							carEnterance = carEnterance ? true : false;
+							carEnterance = carEnterance ? false: true;
 						}
 						if (gateExit && carExit)
 						{
@@ -199,10 +214,10 @@ public class ParkingSimulator extends JComponent {
 			car = ImageIO.read(new File("img/car.png"));
 			ambulance = ImageIO.read(new File("img/ambulance.jpg"));
 			parkingBackground  = ImageIO.read(new File("img/background.png"));
-			gateOpen = ImageIO.read(new File("img/gateOpen.png"));
-			gateClose = ImageIO.read(new File("img/gateClosed.png"));
-			gateExitOpen = ImageIO.read(new File("img/gateOpen.png"));
-			gateExitClose = ImageIO.read(new File("img/gateClosed.png"));
+			gateOpen = ImageIO.read(new File("img/gateA.png"));
+			gateClose = ImageIO.read(new File("img/gateB.png"));
+			gateExitOpen = ImageIO.read(new File("img/gateA.png"));
+			gateExitClose = ImageIO.read(new File("img/gateB.png"));
 			
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
@@ -444,20 +459,14 @@ public class ParkingSimulator extends JComponent {
 		
 	}
 
-	private static void firstSimulation() throws Exception
-	{
-		addCarEnterance();
-		Thread.sleep(1000);
-		removeCarFromParkingLot();
-	}
 	
+	// initialize Parking Lot 
 	public static void main(String args[]) throws Exception {
-		JFrame f = new JFrame("Traffic Simulator");
+		JFrame f = new JFrame("ParkingLot Simulator");
 		f.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		f.setSize(800, 500);
-		ParkingSimulator traffic = new ParkingSimulator();
-		f.setContentPane(traffic);
+		ParkingSimulator parkingLot = new ParkingSimulator();
+		f.setContentPane(parkingLot);
 		f.setVisible(true);
-		firstSimulation();
 	}
 }
