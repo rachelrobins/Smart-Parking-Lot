@@ -2,10 +2,14 @@ package parkinglot;
 
 public enum CarStates {
 	INIT,
-	IN_QUEUE,
+	IN_QUEUE_FIRST,
+	WAIT,
+	IN_QUEUE_SECOND,
 	ENTER_PARKING_LOT,
 	PARKING,
 	PARKED,
 	PREPARE_TO_EXIT,
+	WAIT_BEFORE_EXIT,
 	EXIT,
+	EXITING,
 }

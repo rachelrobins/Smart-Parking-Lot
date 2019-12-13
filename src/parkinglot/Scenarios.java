@@ -2,10 +2,10 @@ package parkinglot;
 
 public class Scenarios {
 
-	public void createFirstSimulation() throws Exception
+	public static void createFirstSimulation() throws Exception
 	{
-		ParkingSimulator.addCarEnterance(1);
+		int id = ParkingSimulator.addCarEnterance();
 		Thread.sleep(1000);
-		ParkingSimulator.removeCarFromParkingLot(1);
+//		ParkingSimulator.removeCarFromParkingLot(id);
 	}
 }

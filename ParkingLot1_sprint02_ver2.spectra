@@ -1,12 +1,16 @@
 module ParkingLot
 
-//Environment controlled input variables (vehicles and pedestrians)
-env boolean carEntrance; // car is waiting to enter the parking lot
-env boolean carExit; // car is waiting to exit the parking lot
+
 
 define
 	numOfSpots := 7;
 	numOfSpotsPlusOne := numOfSpots + 1;
+	
+	
+//Environment controlled input variables (vehicles and pedestrians)
+env boolean carEntrance; // car is waiting to enter the parking lot
+env boolean carExit; // car is waiting to exit the parking lot
+env boolean[numOfSpotsPlusOne] carInSpot; 
 
 /* Start */
 /* For upcoming sprints - VIP and pedestrians*/
@@ -20,7 +24,7 @@ define
 sys boolean gateEntrance; // controls entrance gate
 sys boolean gateExit; // controls exit gate
 sys boolean [numOfSpotsPlusOne]spotLight; // controls the spot lights in the parking lot
-sys Int(0..numOfSpots) freeSpot; // indicates a number of a free spot to park in
+sys Int(0..numOfSpotsPlusOne) freeSpot; // indicates a number of a free spot to park in
 
 
 /* Start */
@@ -75,5 +79,14 @@ gar G gateEntrance -> ! next(gateEntrance); // the gate opens for each car once 
 gar G gateExit -> ! next(gateExit); // the gate opens for each car once at a time
 
 // freeSpot update
-gar G (!spotLight[0] & freeSpot = 0) | (!spotLight[1] & freeSpot = 1) | (!spotLight[2] & freeSpot = 2)| (!spotLight[3] & freeSpot = 3) | (!spotLight[4] & freeSpot = 4) | (!spotLight[5] & freeSpot = 5 | (!spotLight[6] & freeSpot = 6) |(!spotLight[7] & freeSpot = 7));
- 
+gar G ((!spotLight[0] & freeSpot = 0) | (!spotLight[1] & freeSpot = 1) | (!spotLight[2] & freeSpot = 2)| (!spotLight[3] & freeSpot = 3) | (!spotLight[4] & freeSpot = 4) | (!spotLight[5] & freeSpot = 5 | (!spotLight[6] & freeSpot = 6) |(!spotLight[7] & freeSpot = 7))) | freeSpot=numOfSpotsPlusOne;
+gar G (spotLight[0] <-> carInSpot[0]);
+gar G (spotLight[1] <-> carInSpot[1]);
+gar G (spotLight[2] <-> carInSpot[2]);
+gar G (spotLight[3] <-> carInSpot[3]);
+gar G (spotLight[4] <-> carInSpot[4]);
+gar G (spotLight[5] <-> carInSpot[5]);
+gar G (spotLight[6] <-> carInSpot[6]); 
+gar G (spotLight[7] <-> carInSpot[7]);
+
+

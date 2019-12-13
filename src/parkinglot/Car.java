@@ -13,15 +13,19 @@ public class Car {
 	private int Y;
 	private final int width = 95;
 	private final int height = 51;
+	private static int counter = 0;
+	static int carsInQ = 0;
+	private int parkingSpot = -1;
 
-	public Car(int id)
+	public Car()
 	{
 		try {
-			this.setId(id);
+			this.setId(counter);
 			this.setImg(ImageIO.read(new File("img/car.png"))); 
 			this.updateState(CarStates.INIT);
 			this.setX(690);
 			this.setY(159);
+			counter++;
 		}
 		catch (Exception e)
 		{
@@ -66,7 +70,20 @@ public class Car {
 	}
 
 	public void updateState(CarStates state) {
+		if(this.state == CarStates.IN_QUEUE_SECOND) {
+			carsInQ--;
+		}
 		this.state = state;
+		if(state==CarStates.IN_QUEUE_FIRST || state==CarStates.IN_QUEUE_SECOND )
+			carsInQ++;
+		if(state==CarStates.ENTER_PARKING_LOT)
+			carsInQ--;
+	}
+	
+	public void updateState(CarStates state, int parkingSpot) {
+		this.state = state;
+		this.setParkingSpot(parkingSpot);
+
 	}
 
 	public int getId() {
@@ -75,6 +92,14 @@ public class Car {
 
 	public void setId(int id) {
 		this.id = id;
+	}
+
+	public int getParkingSpot() {
+		return parkingSpot;
+	}
+
+	public void setParkingSpot(int parkingSpot) {
+		this.parkingSpot = parkingSpot;
 	}
 	
 	
