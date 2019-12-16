@@ -10,7 +10,7 @@ public class ParkingSpotsConfig {
 	
 	public static void initMap() {
 		configure.put(0,new Integer[] {0,0,120});
-		configure.put(1,new Integer[] {0,30,120});
+		configure.put(1,new Integer[] {0,60,120});
 		configure.put(2,new Integer[] {0,60,120});
 		configure.put(3,new Integer[] {0,90,120});
 		configure.put(4,new Integer[] {120,0,0});

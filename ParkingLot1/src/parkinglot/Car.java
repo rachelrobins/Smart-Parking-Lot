@@ -11,8 +11,8 @@ public class Car {
 	private CarStates state;
 	private int X;
 	private int Y;
-	private final int width = 95;
-	private final int height = 51;
+	private int width;
+	private int height;
 	private static int counter = 0;
 	static int carsInQ = 0;
 	private int parkingSpot = -1;
@@ -25,6 +25,8 @@ public class Car {
 			this.updateState(CarStates.INIT);
 			this.setX(690);
 			this.setY(159);
+			this.width = 95;
+			this.height = 51;
 			counter++;
 		}
 		catch (Exception e)
@@ -49,6 +51,14 @@ public class Car {
 		return height;
 	}
 
+	public void setWidth(int width) {
+		this.width = width;
+	}
+
+	public void setHeight(int height) {
+		this.height = height;
+	}
+	
 	public int getX() {
 		return X;
 	}

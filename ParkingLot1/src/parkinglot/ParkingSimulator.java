@@ -35,6 +35,7 @@ public class ParkingSimulator extends JComponent {
 	
 	String counterSpot;
 	BufferedImage parkingBackground;
+	
 	Random random = new Random();
 	int numOfSpots = 8;
 
@@ -42,7 +43,7 @@ public class ParkingSimulator extends JComponent {
 	boolean gateEntrance= false;
 	boolean gateExit;
 	int freeSpot;
-	boolean[] spotLight  = new boolean[8];
+	boolean[] spotLight  = new boolean[9];
 	boolean[] carInSpot;
 	
 	
@@ -51,6 +52,7 @@ public class ParkingSimulator extends JComponent {
 	boolean carInQWasFound = false;
 	boolean carInExitWasFound = false;
 	
+	BufferedImage carImage;
 	BufferedImage carImageup;
 	BufferedImage carImageDown;
 	BufferedImage gateOpen;
@@ -58,8 +60,20 @@ public class ParkingSimulator extends JComponent {
 	BufferedImage gateExitOpen;
 	BufferedImage gateExitClose;
 	
+	static LinkedList<Car> carsToRemove = new LinkedList<Car>();
 	static LinkedList<Car> carList = new LinkedList<Car>();
 	Thread thread;
+	
+	// remove car list
+	private static void executeRemoveCars()
+	{
+		for(Car car : carsToRemove)
+		{
+			car.updateState(CarStates.PREPARE_TO_EXIT);
+			carsToRemove.remove(car);
+		}
+	}
+	
 	
 	// API
 	public static int addCarEnterance()
@@ -71,11 +85,12 @@ public class ParkingSimulator extends JComponent {
 	
 	public static void removeCarFromParkingLot(int carID)
 	{
+		
 		for(Car car : carList)
 		{
 			if(car.getId() == carID)
 			{
-				car.updateState(CarStates.PREPARE_TO_EXIT);
+				carsToRemove.add(car);
 				return;
 			}
 		}
@@ -99,7 +114,7 @@ public class ParkingSimulator extends JComponent {
 					for(Car car : carList) {
 						
 						if(car.getState() == CarStates.IN_QUEUE_FIRST && !gateEntrance) {
-							System.out.println("car entrance true shold follow gate entrance true");
+							//System.out.println("car entrance true shold follow gate entrance true");
 							executor.setInputValue("carEntrance", "true");
 							carInQWasFound = true;
 						}
@@ -109,7 +124,9 @@ public class ParkingSimulator extends JComponent {
 
 							carInExitWasFound = true;
 						}
+						//System.out.println("car in spot" + car.getParkingSpot());
 						if(car.getState() == CarStates.PARKED) {
+							
 							carInSpot[car.getParkingSpot()]= true;
 						}
 					}
@@ -137,16 +154,18 @@ public class ParkingSimulator extends JComponent {
 						e.printStackTrace();
 					}
 					sysValues = executor.getCurOutputs();
-					System.out.println(sysValues.get("spotsCounter"));
+					//System.out.println(sysValues.get("spotsCounter"));
 					gateEntrance = sysValues.get("gateEntrance").equals("true") ? true : false;
-					System.out.println("the gate is"+gateEntrance);
+					//System.out.println("the gate is"+gateEntrance);
 					gateExit = sysValues.get("gateExit").equals("true") ? true : false;
 					freeSpot  = Integer.parseInt(sysValues.get("freeSpot"));
-					for(int i = 0;i<numOfSpots;i++) {
+					System.out.println("spot Lights:");
+					for(int i = 0;i<numOfSpots+1;i++) {
 						spotLight[i] = sysValues.get("spotLight"+"["+ i +"]").equals("true") ? true : false;
+						System.out.println("spot light " + i + "" + spotLight[i]);
 					}
-					
 					paintParkingLot();
+					executeRemoveCars();
 				}
 
 			}
@@ -159,7 +178,7 @@ public class ParkingSimulator extends JComponent {
 			gateClose = ImageIO.read(new File("img/gateA.png"));
 			gateExitOpen = ImageIO.read(new File("img/gateB.png"));
 			gateExitClose = ImageIO.read(new File("img/gateA.png"));
-			
+			carImage = ImageIO.read(new File("img/car.png"));
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
@@ -169,16 +188,17 @@ public class ParkingSimulator extends JComponent {
 	
 	
 	
-	private void paintParkingLot() {
+	private void paintParkingLot(){
 	
-		try {			
+		try {	
+
 			Thread.sleep(50);
 			System.out.println("At the start of paint");
 //			System.out.println("carEnters:" + carEnters + " carInQueue:"+carInQueue+" carParks" + carParks + " carPrepare" +carPrepareToExit + " carExit" + carExit);
 			// paint relevant state by phase of car
 			// now we support only 1 car
 			for(Car car : carList) {
-				System.out.println(car.getState());
+				System.out.println("car" + car.getId() + " in state" + car.getState());
 				switch (car.getState()) {
 				
 				case INIT :
@@ -186,12 +206,12 @@ public class ParkingSimulator extends JComponent {
 					System.out.println("Car: "+car.getId() +"enters parking lot..");
 					if(Car.carsInQ==0) {
 						stepsToMove = 40;
-						System.out.println("first car in line it is");
+						//System.out.println("first car in line it is");
 						car.updateState(CarStates.IN_QUEUE_FIRST);
 					}
 					else {
 						stepsToMove = 20;
-						System.out.println("second car in line it is");
+						//System.out.println("second car in line it is");
 						car.updateState(CarStates.IN_QUEUE_SECOND);
 					}
 					for (int i = 0; i < stepsToMove; i++) {
@@ -200,7 +220,7 @@ public class ParkingSimulator extends JComponent {
 						car.setX(car.getX()-1);
 					}
 		
-					System.out.println("atate"+car.getState());
+					//System.out.println("atate"+car.getState());
 					break;
 				
 				
@@ -250,7 +270,7 @@ public class ParkingSimulator extends JComponent {
 					{
 						
 					}
-					
+					System.out.println("freeSpot " + freeSpot);
 					int down = ParkingSpotsConfig.configure.get(freeSpot)[0];
 					int straight = ParkingSpotsConfig.configure.get(freeSpot)[1];
 					int up = ParkingSpotsConfig.configure.get(freeSpot)[2];
@@ -259,13 +279,24 @@ public class ParkingSimulator extends JComponent {
 						Thread.sleep(10);
 						car.setX(car.getX()-1);
 					}
-					car.setImg(carImageup);
+					if(up != 0)
+					{
+						car.setImg(carImageup);
+						car.setHeight(95);
+						car.setWidth(51);
+					}
 					for (int i = 0; i < up; i++) {
 						repaint();
 						Thread.sleep(10);
 						car.setY(car.getY()-1);
 					}
-					car.setImg(carImageDown);
+					if(down != 0)
+					{
+						car.setImg(carImageDown);
+						car.setHeight(95);
+						car.setWidth(51);
+						
+					}
 					for (int i = 0; i < down; i++) {
 						repaint();
 						Thread.sleep(10);
@@ -286,23 +317,40 @@ public class ParkingSimulator extends JComponent {
 						
 					}
 					
-					int downExit = ParkingSpotsConfig.configure.get(freeSpot)[2];
-					int straightExit = 450- ParkingSpotsConfig.configure.get(freeSpot)[1];
-					int upExit = ParkingSpotsConfig.configure.get(freeSpot)[0];
+					int downExit = ParkingSpotsConfig.configure.get(car.getParkingSpot())[2];
+					int straightExit = 250- ParkingSpotsConfig.configure.get(car.getParkingSpot())[1];
+					int upExit = ParkingSpotsConfig.configure.get(car.getParkingSpot())[0];
 					
-					car.setImg(carImageDown);
+					if(upExit != 0)
+					{
+						car.setImg(carImageDown);
+						car.setHeight(95);
+						car.setWidth(51);
+						
+					}
+					
 					for (int i = 0; i < upExit; i++) {
 						repaint();
 						Thread.sleep(10);
 						car.setY(car.getY()-1);
 					}
-					car.setImg(carImageup);
+					
+					if(downExit != 0)
+					{
+						car.setImg(carImageup);
+						car.setHeight(95);
+						car.setWidth(51);
+						
+					}
+					
 					for (int i = 0; i < downExit; i++) {
 						repaint();
 						Thread.sleep(10);
 						car.setY(car.getY()+1);
 					}
-					
+					car.setImg(carImage);
+					car.setHeight(51);
+					car.setWidth(95);
 					for (int i = 0; i <straightExit; i++) {
 						repaint();
 						Thread.sleep(10);
