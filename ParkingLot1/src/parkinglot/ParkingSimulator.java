@@ -118,7 +118,7 @@ public class ParkingSimulator extends JComponent {
 							executor.setInputValue("carEntrance", "true");
 							carInQWasFound = true;
 						}
-						if(car.getState() == CarStates.EXIT) {
+						if(car.getState() == CarStates.EXITING) {
 							
 							executor.setInputValue("carExit", "true");
 
@@ -166,6 +166,7 @@ public class ParkingSimulator extends JComponent {
 					}
 					paintParkingLot();
 					executeRemoveCars();
+					//paintParkingLot();
 				}
 
 			}
@@ -220,7 +221,7 @@ public class ParkingSimulator extends JComponent {
 						car.setX(car.getX()-1);
 					}
 		
-					//System.out.println("atate"+car.getState());
+					//System.out.println("state"+car.getState());
 					break;
 				
 				
@@ -318,7 +319,7 @@ public class ParkingSimulator extends JComponent {
 					}
 					
 					int downExit = ParkingSpotsConfig.configure.get(car.getParkingSpot())[2];
-					int straightExit = 250- ParkingSpotsConfig.configure.get(car.getParkingSpot())[1];
+					int straightExit = 250 - ParkingSpotsConfig.configure.get(car.getParkingSpot())[1];
 					int upExit = ParkingSpotsConfig.configure.get(car.getParkingSpot())[0];
 					
 					if(upExit != 0)
@@ -359,22 +360,18 @@ public class ParkingSimulator extends JComponent {
 					car.updateState(CarStates.WAIT_BEFORE_EXIT);
 					break;
 				case WAIT_BEFORE_EXIT:
-					car.updateState(CarStates.EXIT);
-					break;
-				case EXIT:
-					if(gateExit) {
-						car.updateState(CarStates.EXITING);
-					}
-					break;
-					
+					car.updateState(CarStates.EXITING);
+					break;	
 				case EXITING:
-					System.out.println("Car is exiting!!");
-					for (int i = 0; i < 190; i++) {
-						repaint();
-						Thread.sleep(10);
-						car.setX(car.getX()-1);
+					if(gateExit) {
+						System.out.println("Car is exiting!!");
+						for (int i = 0; i < 200; i++) {
+							repaint();
+							Thread.sleep(10);
+							car.setX(car.getX()-1);
+						}
+						carList.remove(car);
 					}
-				
 				default:
 					break;
 				}
