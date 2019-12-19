@@ -39,7 +39,7 @@ sys Int(0..numOfSpotsPlusTwo) freeSpot; // indicates a number of a free spot to 
 
 // assumptions
 //asm G carEntrance -> (((next(carEntrance) = carEntrance)) | gateEntrance); // a waiting car will not disappear
-asm G ((carEntrance)-> !(next(carEntrance)));
+asm G ((carEntrance & freeSpot != 8)-> !(next(carEntrance)));
 // | ((carEntrance & spotsCounter=numOfSpots) -> (next(carEntrance) = carEntrance)); //
 asm G carExit -> !(next(carExit));
 
