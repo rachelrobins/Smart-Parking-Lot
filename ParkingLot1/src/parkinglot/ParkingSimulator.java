@@ -60,6 +60,7 @@ public class ParkingSimulator extends JComponent {
 	BufferedImage gateExitOpen;
 	BufferedImage gateExitClose;
 	
+	static LinkedList<Car> carsToAdd = new LinkedList<Car>();
 	static LinkedList<Car> carsToRemove = new LinkedList<Car>();
 	static LinkedList<Car> carList = new LinkedList<Car>();
 	Thread thread;
@@ -74,12 +75,21 @@ public class ParkingSimulator extends JComponent {
 		}
 	}
 	
+	private static void executeAddCars()
+	{
+		for(Car car : carsToAdd)
+		{
+			car.updateState(CarStates.INIT);
+			carList.addLast(car);
+			carsToAdd.remove(car);
+		}
+	}
 	
 	// API
 	public static int addCarEnterance()
 	{
 		Car car = new Car();
-		carList.addLast(car);
+		carsToAdd.addLast(car);
 		return car.getId();
 	}
 	
@@ -106,6 +116,7 @@ public class ParkingSimulator extends JComponent {
 				executor = new ControllerExecutor(true, false);
 
 				while (true) {	
+					executeAddCars();
 					Map<String, String> sysValues;
 					carInQWasFound = false;
 					carInExitWasFound  = false;
