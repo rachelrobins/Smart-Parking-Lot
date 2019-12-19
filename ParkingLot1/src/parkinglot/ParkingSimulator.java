@@ -62,6 +62,8 @@ public class ParkingSimulator extends JComponent {
 	
 	static LinkedList<Car> carsToAdd = new LinkedList<Car>();
 	static LinkedList<Car> carsToRemove = new LinkedList<Car>();
+	static LinkedList<Car> carsOut = new LinkedList<Car>();
+	
 	static LinkedList<Car> carList = new LinkedList<Car>();
 	Thread thread;
 	
@@ -73,6 +75,15 @@ public class ParkingSimulator extends JComponent {
 			car.updateState(CarStates.PREPARE_TO_EXIT);
 			carsToRemove.remove(car);
 		}
+	}
+	
+	private static void deleteOutCars()
+	{
+		for(Car car : carsOut)
+		{
+			carList.remove(car);
+		}
+		carsOut.clear();
 	}
 	
 	private static void executeAddCars()
@@ -177,6 +188,7 @@ public class ParkingSimulator extends JComponent {
 					}
 					paintParkingLot();
 					executeRemoveCars();
+					deleteOutCars();
 					//paintParkingLot();
 				}
 
@@ -368,10 +380,20 @@ public class ParkingSimulator extends JComponent {
 						Thread.sleep(10);
 						car.setX(car.getX()-1);
 					}
-					car.updateState(CarStates.WAIT_BEFORE_EXIT);
+					if(Car.carsInExitQ == 0)
+					{
+						car.updateState(CarStates.EXITING);
+					}
+					else 
+					{
+						car.updateState(CarStates.WAIT_BEFORE_EXIT);
+					}
 					break;
 				case WAIT_BEFORE_EXIT:
-					car.updateState(CarStates.EXITING);
+					if(Car.carsInExitQ == 1)
+					{
+						car.updateState(CarStates.EXITING);
+					}
 					break;	
 				case EXITING:
 					if(gateExit) {
@@ -381,8 +403,8 @@ public class ParkingSimulator extends JComponent {
 							Thread.sleep(10);
 							car.setX(car.getX()-1);
 						}
-						carList.remove(car);
-					}
+						carsOut.add(car);
+					}	
 				default:
 					break;
 				}

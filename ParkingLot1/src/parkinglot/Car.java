@@ -15,6 +15,7 @@ public class Car {
 	private int height;
 	private static int counter = 0;
 	static int carsInQ = 0;
+	static int carsInExitQ = 0;
 	private int parkingSpot = -1;
 
 	public Car()
@@ -88,6 +89,11 @@ public class Car {
 			carsInQ++;
 		if(state==CarStates.ENTER_PARKING_LOT)
 			carsInQ--;
+		if(state==CarStates.PREPARE_TO_EXIT)
+			carsInExitQ++;
+		if(state==CarStates.EXITING)
+			carsInExitQ--;
+			
 	}
 	
 	public void updateState(CarStates state, int parkingSpot) {
