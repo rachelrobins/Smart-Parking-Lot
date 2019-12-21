@@ -72,8 +72,12 @@ public class ParkingSimulator extends JComponent {
 	{
 		for(Car car : carsToRemove)
 		{
-			car.updateState(CarStates.PREPARE_TO_EXIT);
-			carsToRemove.remove(car);
+			if(Car.carsInExitQ == 0)
+			{
+				car.updateState(CarStates.PREPARE_TO_EXIT);
+				carsToRemove.remove(car);
+			}
+			
 		}
 	}
 	
@@ -97,11 +101,11 @@ public class ParkingSimulator extends JComponent {
 	}
 	
 	// API
-	public static int addCarEnterance()
+	public static Car addCarEnterance()
 	{
 		Car car = new Car();
 		carsToAdd.addLast(car);
-		return car.getId();
+		return car;
 	}
 	
 	public static void removeCarFromParkingLot(int carID)
@@ -112,7 +116,7 @@ public class ParkingSimulator extends JComponent {
 			if(car.getId() == carID)
 			{
 				carsToRemove.add(car);
-				return;
+				return;	
 			}
 		}
 	}
@@ -458,7 +462,7 @@ public class ParkingSimulator extends JComponent {
 		ParkingSimulator parkingLot = new ParkingSimulator();
 		f.setContentPane(parkingLot);
 		f.setVisible(true);
-		Scenarios.createFirstSimulation();
+		Scenarios.createRandomScenario();
 	}
 
 	
