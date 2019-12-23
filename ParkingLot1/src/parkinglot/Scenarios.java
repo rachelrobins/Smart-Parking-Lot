@@ -9,8 +9,14 @@ public class Scenarios {
 	// Car enters the parking lot and then leaves
 	public static void createInceptionScenario() throws Exception
 	{
-		int id = ParkingSimulator.addCarEnterance().getId();
-		Thread.sleep(600);
+		Car car = ParkingSimulator.addCarEnterance();
+		int id = car.getId();
+		Thread.sleep(6000);
+		while(car.getState()!= CarStates.PARKED)
+		{
+			System.out.println("in while");
+			continue;
+		}
 		ParkingSimulator.removeCarFromParkingLot(id);
 		Thread.sleep(50000);
 	}
@@ -101,5 +107,14 @@ public class Scenarios {
 
 			Thread.sleep(7000);
 		}
+	}
+	
+	// Forth Scenario
+	// Pedestrian
+	public static void createForthScenario() throws Exception
+	{
+		ParkingSimulator.addPedestrian(0);
+		Scenarios.createInceptionScenario();
+		
 	}
 }

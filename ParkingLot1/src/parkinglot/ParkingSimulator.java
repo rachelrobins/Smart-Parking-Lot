@@ -52,6 +52,11 @@ public class ParkingSimulator extends JComponent {
 	boolean carInQWasFound = false;
 	boolean carInExitWasFound = false;
 	
+	// pedestrian light vars (sys)
+	boolean pedetrianRightLight;
+	boolean pedetrianLeftLight;
+	
+	
 	BufferedImage carImage;
 	BufferedImage carImageup;
 	BufferedImage carImageDown;
@@ -63,8 +68,19 @@ public class ParkingSimulator extends JComponent {
 	static LinkedList<Car> carsToAdd = new LinkedList<Car>();
 	static LinkedList<Car> carsToRemove = new LinkedList<Car>();
 	static LinkedList<Car> carsOut = new LinkedList<Car>();
-	
 	static LinkedList<Car> carList = new LinkedList<Car>();
+	
+	// pedestrian vars (env)
+	static boolean pedUpRight = false; 
+	static boolean pedDownRight = false;
+	static boolean pedUpLeft = false;
+	static boolean pedDownLeft = false;
+	
+	static Pedestrian pedestrianUpRight;
+	static Pedestrian pedestrianUpLeft;
+	static Pedestrian pedestrianDownRight;
+	static Pedestrian pedestrianDownLeft;
+	
 	Thread thread;
 	
 	// remove car list
@@ -100,6 +116,7 @@ public class ParkingSimulator extends JComponent {
 		}
 	}
 	
+	
 	// API
 	public static Car addCarEnterance()
 	{
@@ -121,6 +138,16 @@ public class ParkingSimulator extends JComponent {
 		}
 	}
 	
+	public static Pedestrian addPedestrian(int position) throws Exception
+	{
+		Pedestrian ped = new Pedestrian(position);
+		if(position == 0)
+		{
+			pedUpRight = true;
+		}
+		pedestrianUpRight = ped;
+		return ped;
+	}
 	
 	public ParkingSimulator() {
 		Thread animationThread = new Thread(new Runnable() {
@@ -137,37 +164,53 @@ public class ParkingSimulator extends JComponent {
 					carInExitWasFound  = false;
 					try {
 						carInSpot = new boolean [] {false,false,false,false,false,false,false,false};
-					for(Car car : carList) {
-						
-						if(car.getState() == CarStates.IN_QUEUE_FIRST && !gateEntrance) {
-							//System.out.println("car entrance true shold follow gate entrance true");
-							executor.setInputValue("carEntrance", "true");
-							carInQWasFound = true;
-						}
-						if(car.getState() == CarStates.EXITING) {
+						for(Car car : carList) {
 							
-							executor.setInputValue("carExit", "true");
-
-							carInExitWasFound = true;
+							if(car.getState() == CarStates.IN_QUEUE_FIRST && !gateEntrance) {
+								//System.out.println("car entrance true shold follow gate entrance true");
+								executor.setInputValue("carEntrance", "true");
+								carInQWasFound = true;
+							}
+							if(car.getState() == CarStates.EXITING) {
+								
+								executor.setInputValue("carExit", "true");
+	
+								carInExitWasFound = true;
+							}
+							//System.out.println("car in spot" + car.getParkingSpot());
+							if(car.getState() == CarStates.PARKED) {
+								
+								carInSpot[car.getParkingSpot()]= true;
+							}
 						}
-						//System.out.println("car in spot" + car.getParkingSpot());
-						if(car.getState() == CarStates.PARKED) {
 							
-							carInSpot[car.getParkingSpot()]= true;
+						if(!carInQWasFound) {
+							executor.setInputValue("carEntrance", "false");
 						}
-					}
+						if(!carInExitWasFound) {
+								executor.setInputValue("carExit", "false");
+						}
+						for (int i =0; i<numOfSpots;i++) {
+							executor.setInputValue("carInSpot" +"["+i+"]",carInSpot[i] ? "true" : "false");
+						}
 						
-					if(!carInQWasFound) {
-						executor.setInputValue("carEntrance", "false");
-					}
-					if(!carInExitWasFound) {
-							executor.setInputValue("carExit", "false");
-					}
-					for (int i =0; i<numOfSpots;i++) {
-						executor.setInputValue("carInSpot" +"["+i+"]",carInSpot[i] ? "true" : "false");
-					}
-					
-					
+						if(pedUpRight || pedDownRight)
+						{
+							executor.setInputValue("pedestrianRight", "true");
+						}
+						else
+						{
+							executor.setInputValue("pedestrianRight", "false");
+						}
+						
+						if(pedUpLeft || pedDownLeft)
+						{
+							executor.setInputValue("pedestrianLeft", "true");
+						}
+						else
+						{
+							executor.setInputValue("pedestrianLeft", "false");
+						}
 					}
 					catch (ControllerExecutorException e) {
 						e.printStackTrace();
@@ -185,15 +228,18 @@ public class ParkingSimulator extends JComponent {
 					//System.out.println("the gate is"+gateEntrance);
 					gateExit = sysValues.get("gateExit").equals("true") ? true : false;
 					freeSpot  = Integer.parseInt(sysValues.get("freeSpot"));
-					System.out.println("spot Lights:");
-					for(int i = 0;i<numOfSpots+1;i++) {
-						spotLight[i] = sysValues.get("spotLight"+"["+ i +"]").equals("true") ? true : false;
-						System.out.println("spot light " + i + "" + spotLight[i]);
-					}
+					pedetrianLeftLight = sysValues.get("pedetrianLeftLight").equals("true") ? true : false;
+					pedetrianRightLight = sysValues.get("pedetrianRightLight").equals("true") ? true : false;
+					
+//					System.out.println("spot Lights:");
+//					for(int i = 0;i<numOfSpots+1;i++) {
+//						spotLight[i] = sysValues.get("spotLight"+"["+ i +"]").equals("true") ? true : false;
+//						System.out.println("spot light " + i + "" + spotLight[i]);
+//					}
 					paintParkingLot();
 					executeRemoveCars();
 					deleteOutCars();
-					//paintParkingLot();
+					
 				}
 
 			}
@@ -413,8 +459,22 @@ public class ParkingSimulator extends JComponent {
 					break;
 				}
 				
+			}// for carsList
+			
+			// pedestrian graphics
+			if(pedUpRight)
+			{
+				if(pedestrianUpRight.state == PedestrianStates.ENETERING)
+				{
+					for (int i = 0; i < 100; i++) {
+						repaint();
+						Thread.sleep(10);
+						pedestrianUpRight.y++;
+					}
+					pedestrianUpRight.state = PedestrianStates.WAITING;
 				}
-				
+			}
+			
 			Thread.sleep(50);
 			repaint();
 			Thread.sleep(1000);
@@ -448,9 +508,13 @@ public class ParkingSimulator extends JComponent {
 		{
 			g.drawImage(gateOpen, 210, 159, 36, 60, null);
 		}
-			
-			
+		
+		if(pedUpRight)
+		{
+			g.drawImage( pedestrianUpRight.img, pedestrianUpRight.x, pedestrianUpRight.y, 30, 30, null);
 		}
+			
+	}
 
 	
 	// initialize Parking Lot 
@@ -462,7 +526,8 @@ public class ParkingSimulator extends JComponent {
 		ParkingSimulator parkingLot = new ParkingSimulator();
 		f.setContentPane(parkingLot);
 		f.setVisible(true);
-		Scenarios.createRandomScenario();
+//		Scenarios.createRandomScenario();
+		Scenarios.createForthScenario();
 	}
 
 	
