@@ -16,8 +16,8 @@ env boolean[numOfSpotsPlusOne] carInSpot;
 /* For upcoming sprints - VIP and pedestrians*/
 //env boolean carVipEntrance;
 //env boolean carVipExit;
-env boolean pedestrianRight;
-env boolean pedestrianLeft;
+env boolean pedestrianRegularGate;
+env boolean pedestrianVIPGate;
 /*End */
 
 //System controlled output variables (gates and lights)
@@ -29,8 +29,8 @@ sys Int(0..numOfSpotsPlusTwo) freeSpot; // indicates a number of a free spot to 
 
 sys boolean gateVipEntrance;
 sys boolean gateVipExit;
-sys boolean pedetrianRightLight;
-sys boolean pedetrianLeftLight;
+sys boolean pedetrianRegularGateLight;
+sys boolean pedetrianVipGateLight;
 
 
 
@@ -69,8 +69,8 @@ gar !gateEntrance;
 gar !gateVipExit;
 gar !gateVipEntrance;
 
-gar GF !pedetrianRightLight;
-gar GF !pedetrianLeftLight;
+gar GF !pedetrianRegularGateLight;
+gar GF !pedetrianVipGateLight;
 
 //asm G (carEntrance & (spotsCounter = numOfSpots)) -> next(carEntrance);
 //& spotsCounter > 0
@@ -81,11 +81,11 @@ gar G gateEntrance -> ! next(gateEntrance); // the gate opens for each car once 
 gar G gateExit -> ! next(gateExit); // the gate opens for each car once at a time
 
 // if there is a pedestrian crossing the cross-walk the gate won't open
-gar G pedetrianRightLight -> !gateEntrance;
-gar G pedetrianRightLight -> !gateVipExit;
+gar G pedetrianRegularGateLight -> !gateEntrance;
+gar G pedetrianRegularGateLight -> !gateVipExit;
 
-gar G pedetrianLeftLight -> !gateVipEntrance;
-gar G pedetrianLeftLight -> !gateEntrance;
+gar G pedetrianVipGateLight -> !gateVipEntrance;
+gar G pedetrianVipGateLight -> !gateEntrance;
 
 gar G (!carEntrance) -> (!gateEntrance);
 gar G (!carExit) -> (!gateExit);
@@ -104,5 +104,5 @@ gar G (spotLight[7] <-> carInSpot[7]);
 // find minimum of free spots array
 gar G exists i in Int(0..numOfSpotsPlusOne).forall j in Int(0..numOfSpotsPlusOne).(j<i->spotLight[j]=true)&spotLight[i]=false&freeSpot=i;  
 
-gar pRespondsToS(pedestrianRight, pedetrianRightLight);
-gar pRespondsToS(pedestrianLeft, pedetrianLeftLight);
+gar pRespondsToS(pedestrianRegularGate, pedetrianRegularGateLight);
+gar pRespondsToS(pedestrianVIPGate, pedetrianVipGateLight);
