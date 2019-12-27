@@ -75,7 +75,9 @@ gar !gateVipEntrance;
 gar GF !pedetrianRightLight;
 gar GF !pedetrianLeftLight;
 
-
+//asm G (carEntrance & (spotsCounter = numOfSpots)) -> next(carEntrance);
+//& spotsCounter > 0
+//  & spotsCounter < numOfSpots
 gar G (carEntrance & freeSpot != 8 & !gateVipEntrance & !pedetrianRightLight) -> gateEntrance; // if there are spots available in the parking lot - open the gate
 gar G (carExit ) -> gateExit; // if a car wants to exit - open the exit gate
 gar G (carVipExit ) -> gateVipExit; // if a car wants to exit - open the exit gate

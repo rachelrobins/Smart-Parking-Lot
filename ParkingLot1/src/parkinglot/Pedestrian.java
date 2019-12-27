@@ -10,7 +10,8 @@ public class Pedestrian {
 	int x;
 	int y;
 	BufferedImage img;
-	PedestrianStates state;
+	Pedestrian.States state;
+	int position;
 	private static String[] pedImages = new String[] {"img/p1.png", "img/p2.png","img/p3.png"};
 	
 	public Pedestrian(int position) throws Exception
@@ -18,12 +19,35 @@ public class Pedestrian {
 		Random rnd = new Random();
 		int imgForPed = rnd.nextInt(3);
 		this.img = ImageIO.read(new File(pedImages[imgForPed]));
-		this.state = PedestrianStates.ENETERING;
+		this.state = Pedestrian.States.ENETERING;
+		this.position = position;
 		if(position == 0)
 		{
-			this.x = 570;
+			this.x = 693;
 			this.y = 30;
+		}
+		else if(position == 1)
+		{
+			this.x = 693;
+			this.y = 400;
+		}
+		else if(position == 2)
+		{
+			this.x = 340;
+			this.y = 30;
+		}
+		else
+		{
+			this.x = 340;
+			this.y = 400;
 		}
 		
 	}
+	enum States {
+		ENETERING,
+		WAITING,
+		CROSSING,
+	}
 }
+
+

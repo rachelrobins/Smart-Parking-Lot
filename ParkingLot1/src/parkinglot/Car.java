@@ -14,21 +14,38 @@ public class Car {
 	private int width;
 	private int height;
 	private static int counter = 0;
+	static int carsVipInQ = 0;
+
 	static int carsInQ = 0;
 	static int carsInExitQ = 0;
-	private int parkingSpot = -1;
+	static int carsVipInExitQ = 0;
 
-	public Car()
+	private int parkingSpot = -1;
+	private boolean vipCar;
+	
+	public Car(boolean vipCar)
 	{
 		try {
 			this.setId(counter);
-			this.setImg(ImageIO.read(new File("img/car.png"))); 
-			this.updateState(CarStates.INIT);
-			this.setX(690);
-			this.setY(159);
+			this.state  = CarStates.INIT;
+			
+			if(vipCar)
+			{
+				this.setImg(ImageIO.read(new File("img/carVip.png"))); 
+				this.setX(0);
+				this.setY(259);
+			}
+			else
+			{
+				this.setImg(ImageIO.read(new File("img/car.png"))); 
+				this.setX(970);
+				this.setY(159);
+			}
+			
 			this.width = 95;
 			this.height = 51;
 			counter++;
+			this.setVipCar(vipCar);
 		}
 		catch (Exception e)
 		{
@@ -81,23 +98,67 @@ public class Car {
 	}
 
 	public void updateState(CarStates state) {
-		if(this.state == CarStates.IN_QUEUE_SECOND) {
-			carsInQ--;
-		}
+//		if(this.state == CarStates.IN_QUEUE_SECOND) 
+//		{
+//			if(!this.isVipCar())
+//				carsInQ--;
+//			else
+//				carsVipInQ--;
+//		}
+		
 		this.state = state;
-		if(state==CarStates.IN_QUEUE_FIRST || state==CarStates.IN_QUEUE_SECOND )
-			carsInQ++;
+		if(state==CarStates.INIT)
+		{
+			if(!this.isVipCar())
+			{
+				carsInQ++;
+			}
+			else
+			{
+				carsVipInQ++;
+			}
+		}
+		
 		if(state==CarStates.ENTER_PARKING_LOT)
-			carsInQ--;
+		{
+			if(!this.isVipCar())
+			{
+				carsInQ--;
+			}
+			else
+			{
+				carsVipInQ--;
+			}
+		}
+		
 		if(state==CarStates.PREPARE_TO_EXIT)
-			carsInExitQ++;
+		{
+			if(!this.isVipCar())
+			{
+				carsInExitQ++;
+			}
+			else
+			{
+				carsVipInExitQ++;
+			}
+		}
+		
 		if(state==CarStates.EXITING)
-			carsInExitQ--;
-			
+		{
+			if(!this.isVipCar())
+			{
+				carsInExitQ--;
+			}
+			else
+			{
+				carsVipInExitQ--;
+			}
+		}
+		
 	}
 	
 	public void updateState(CarStates state, int parkingSpot) {
-		this.state = state;
+		this.updateState(state);
 		this.setParkingSpot(parkingSpot);
 
 	}
@@ -116,6 +177,14 @@ public class Car {
 
 	public void setParkingSpot(int parkingSpot) {
 		this.parkingSpot = parkingSpot;
+	}
+
+	public boolean isVipCar() {
+		return vipCar;
+	}
+
+	public void setVipCar(boolean vipCar) {
+		this.vipCar = vipCar;
 	}
 	
 	

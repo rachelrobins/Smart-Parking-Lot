@@ -34,11 +34,11 @@ sys boolean pedetrianLeftLight;
 
 
 // assumptions
-asm G ((carEntrance & freeSpot != 8 & !pedetrianRightLight & !gateVipEntrance)-> !(next(carEntrance)));
+asm G ((carEntrance & freeSpot != 8)-> !(next(carEntrance)));
 asm G carExit -> !(next(carExit));
 
 asm G carVipExit -> !(next(carVipExit));
-asm G ((carVipEntrance & freeSpot != 8 & !pedetrianLeftLight)-> !(next(carVipEntrance)));
+asm G ((carVipEntrance & freeSpot != 8)-> !(next(carVipEntrance)));
 
 
 asm !carExit; // at the beginning the parking lot is empty
@@ -75,11 +75,11 @@ gar !gateVipEntrance;
 gar GF !pedetrianRightLight;
 gar GF !pedetrianLeftLight;
 
-
-gar G (carEntrance & freeSpot != 8 & !gateVipEntrance & !pedetrianRightLight) -> gateEntrance; // if there are spots available in the parking lot - open the gate
+//asm G (carEntrance & (spotsCounter = numOfSpots)) -> next(carEntrance);
+//& spotsCounter > 0
+//  & spotsCounter < numOfSpots
+gar G (carEntrance & freeSpot != 8 & !gateVipEntrance) -> gateEntrance; // if there are spots available in the parking lot - open the gate
 gar G (carExit ) -> gateExit; // if a car wants to exit - open the exit gate
-gar G (carVipExit ) -> gateVipExit; // if a car wants to exit - open the exit gate
-
 gar G gateEntrance -> ! next(gateEntrance); // the gate opens for each car once at a time
 gar G gateExit -> ! next(gateExit); // the gate opens for each car once at a time
 
@@ -89,11 +89,10 @@ gar G pedetrianRightLight -> !gateVipExit;
 
 gar G pedetrianLeftLight -> !gateVipEntrance;
 gar G pedetrianLeftLight -> !gateExit;
-gar G freeSpot = 8 -> !gateEntrance;
+
 gar G (!carEntrance) -> (!gateEntrance);
 gar G (!carExit) -> (!gateExit);
 
-gar G freeSpot = 8 -> !gateVipEntrance;
 gar G (carVipEntrance & freeSpot != 8 & !pedetrianLeftLight) -> gateVipEntrance; 
 gar G gateVipEntrance -> !gateEntrance;
 
