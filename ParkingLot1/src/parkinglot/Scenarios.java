@@ -4,7 +4,20 @@ import java.util.LinkedList;
 import java.util.Random;
 
 public class Scenarios {
-
+	public static LinkedList<Car> safeAddCar(LinkedList<Car> carList) throws Exception{
+		Car car = ParkingSimulator.addCarEnterance();
+		if (car!=null) 
+			carList.add(car);
+		return carList;
+		
+	}
+	public static LinkedList<Car> safeAddVipCar(LinkedList<Car> carList) throws Exception{
+		Car car = ParkingSimulator.addVipCarEnterance();
+		if (car!=null) 
+			carList.add(car);
+		return carList;
+		
+	}
 	// First Scenario
 	// Car enters the parking lot and then leaves
 	public static void createZeroScenario() throws Exception
@@ -33,27 +46,27 @@ public class Scenarios {
 	// Rush Hour - a lot of regular cars enters the parking lot
 	public static void createSecondScenario() throws Exception
 	{
-		int id = ParkingSimulator.addCarEnterance().getId();
-		Thread.sleep(100);
-		int id2 = ParkingSimulator.addCarEnterance().getId();
+		int id = ParkingSimulator.addVipCarEnterance().getId();
+		Thread.sleep(7000);
+		int id2 = ParkingSimulator.addVipCarEnterance().getId();
 		for(int i = 0; i < 7; i++)
 		{
 			Thread.sleep(10000);
-			ParkingSimulator.addCarEnterance();
+			ParkingSimulator.addVipCarEnterance();
 			
 		}
 		Thread.sleep(10000);
-		ParkingSimulator.addCarEnterance();
+		ParkingSimulator.addVipCarEnterance();
 		Thread.sleep(10000);
 		ParkingSimulator.removeCarFromParkingLot(id);
 		Thread.sleep(50000);
 		ParkingSimulator.removeCarFromParkingLot(id2);
 		Thread.sleep(10000);
-		ParkingSimulator.addCarEnterance();
+		ParkingSimulator.addVipCarEnterance();
 		Thread.sleep(10000);
-		ParkingSimulator.addCarEnterance();
+		ParkingSimulator.addVipCarEnterance();
 		Thread.sleep(10000);
-		ParkingSimulator.addCarEnterance();
+		ParkingSimulator.addVipCarEnterance();
 			
 		Thread.sleep(10000);
 	}
@@ -62,6 +75,7 @@ public class Scenarios {
 	// Rush Hour - a lot of cars, both vip and regular, enters the parking lot
 	public static void createThirdScenario() throws Exception
 	{
+
 		ParkingSimulator.addVipCarEnterance();
 		ParkingSimulator.addCarEnterance();
 		Thread.sleep(7000);
@@ -148,7 +162,7 @@ public class Scenarios {
 			{
 				if(!pedsWaiting[i]) 
 				{
-					pedEntering[i] = rand.nextInt(2);
+					pedEntering[i] = rand.nextInt(10);
 				}
 			}
 			for(int i = 0; i < 4; i++)
@@ -225,18 +239,18 @@ public class Scenarios {
 				randVip = rand.nextBoolean();
 				if(randVip)
 				{
-					car = ParkingSimulator.addVipCarEnterance();
+					carsInParkingLot = safeAddVipCar(carsInParkingLot);
 				}
 				else 
 				{
-					car = ParkingSimulator.addCarEnterance();
+					carsInParkingLot = safeAddCar(carsInParkingLot);
 				}
 				
-				carsInParkingLot.add(car);
 				counter++;
 			}
 			if(carExiting)
 			{
+				
 				for(Car car : carsInParkingLot)
 				{
 					if(car.getState() == CarStates.PARKED)

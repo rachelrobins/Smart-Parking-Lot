@@ -12,6 +12,7 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Random;
@@ -68,6 +69,7 @@ public class ParkingSimulator extends JComponent {
 	BufferedImage carVipImageup;
 	BufferedImage carVipImageDown;
 	BufferedImage carImageDown;
+	BufferedImage carOnFire;
 	BufferedImage gateOpen;
 	BufferedImage gateClose;
 	BufferedImage gateVipOpen;
@@ -77,7 +79,10 @@ public class ParkingSimulator extends JComponent {
 	BufferedImage gateVipExitOpen;
 	BufferedImage gateVipExitClose;
 	BufferedImage greenCrossWalk;
+	BufferedImage parkingBackgroundFire;
+	BufferedImage spotMaintain;
 	
+	static HashMap<Integer,Integer[]> parkingLotConf = new HashMap<Integer,Integer[]>();
 	static LinkedList<Car> carsToAdd = new LinkedList<Car>();
 	static LinkedList<Car> carsToRemove = new LinkedList<Car>();
 	static LinkedList<Car> carsOut = new LinkedList<Car>();
@@ -99,6 +104,16 @@ public class ParkingSimulator extends JComponent {
 	
 	Thread thread;
 	
+	public static void initMap() {
+		parkingLotConf.put(0,new Integer[] {620,50});
+		parkingLotConf.put(1,new Integer[] {550,50});
+		parkingLotConf.put(2,new Integer[] {470,50});
+		parkingLotConf.put(3,new Integer[] {410,50});
+		parkingLotConf.put(4,new Integer[] {620,350});
+		parkingLotConf.put(5,new Integer[] {550,350});
+		parkingLotConf.put(6,new Integer[] {470,350});
+		parkingLotConf.put(7,new Integer[] {410,350});
+	}
 	
 	private static void executeAddPeds()
 	{
@@ -270,6 +285,7 @@ public class ParkingSimulator extends JComponent {
 	}
 	
 	public ParkingSimulator() {
+		initMap();
 		Thread animationThread = new Thread(new Runnable() {
 			public void run() {
 				
@@ -399,7 +415,7 @@ public class ParkingSimulator extends JComponent {
 					sysValues = executor.getCurOutputs();
 					//System.out.println(sysValues.get("spotsCounter"));
 					gateEntrance = sysValues.get("gateEntrance").equals("true") ? true : false;
-					//System.out.println("the gate is"+gateEntrance);
+//					System.out.println("the gate is"+gateEntrance);
 					gateExit = sysValues.get("gateExit").equals("true") ? true : false;
 					freeSpot  = Integer.parseInt(sysValues.get("freeSpot"));
 					pedetrianLeftLight = sysValues.get("pedetrianLeftLight").equals("true") ? true : false;
@@ -429,7 +445,8 @@ public class ParkingSimulator extends JComponent {
 		
 		// Load images
 		try {
-			parkingBackground  = ImageIO.read(new File("img/background.jpeg"));
+			parkingBackground  = ImageIO.read(new File("img/background.jpg"));
+			parkingBackgroundFire  = ImageIO.read(new File("img/backgroundImageFire.png"));
 			gateOpen = ImageIO.read(new File("img/gateB.png"));
 			gateClose = ImageIO.read(new File("img/gateA.png"));
 			gateExitOpen = ImageIO.read(new File("img/gateB.png"));
@@ -448,6 +465,8 @@ public class ParkingSimulator extends JComponent {
 			carVipImageup = ImageIO.read(new File("img/carVipUp.png"));
 			carImageDown = ImageIO.read(new File("img/carDown.png"));
 			carVipImageDown = ImageIO.read(new File("img/carVipDown.png"));
+			carOnFire = ImageIO.read(new File("img/carOnFire.png"));
+			spotMaintain = ImageIO.read(new File("img/maint.png"));
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
@@ -466,6 +485,17 @@ public class ParkingSimulator extends JComponent {
 //			System.out.println("carEnters:" + carEnters + " carInQueue:"+carInQueue+" carParks" + carParks + " carPrepare" +carPrepareToExit + " carExit" + carExit);
 			// paint relevant state by phase of car
 			// now we support only 1 car
+			if(parkingLotMaintainance) {
+				for(Car car : carList) {
+					car.setImg(carOnFire);
+					
+				
+				}
+				repaint();
+				Thread.sleep(1000);
+				carList.clear();
+				
+			}
 			for(Car car : carList) {
 //				System.out.println("car" + car.getId() + " in state" + car.getState());
 				switch (car.getState()) {
@@ -474,18 +504,18 @@ public class ParkingSimulator extends JComponent {
 					int stepsToMove;
 //					System.out.println("Car: "+car.getId() +"enters parking lot..");
 					if(Car.carsInQ==1) {
-						stepsToMove = 200;
+						stepsToMove = 125;
 						//System.out.println("first car in line it is");
 						car.updateState(CarStates.IN_QUEUE_FIRST);
 					}
 					else {
-						stepsToMove = 50;
+						stepsToMove = 20;
 						//System.out.println("second car in line it is");
 						if(!car.isVipCar())
 							car.updateState(CarStates.IN_QUEUE_SECOND);
 						else
 						{
-							stepsToMove = 200;
+							stepsToMove = 125;
 							car.updateState(CarStates.IN_QUEUE_FIRST);
 						}
 						
@@ -523,7 +553,6 @@ public class ParkingSimulator extends JComponent {
 					}
 					if (gate)
 					{
-//						System.out.println("Car is entering!!!");
 						for (int i = 0; i < 130; i++) {
 							repaint();
 							Thread.sleep(10);
@@ -557,7 +586,7 @@ public class ParkingSimulator extends JComponent {
 					if (gate)
 					{
 //						System.out.println("Car is moving forward the gate!!!");
-						for (int i = 0; i < 150; i++) {
+						for (int i = 0; i < 105; i++) {
 							repaint();
 							Thread.sleep(10);
 							if(!car.isVipCar())
@@ -638,13 +667,13 @@ public class ParkingSimulator extends JComponent {
 					
 					
 					int downExit = ParkingSpotsConfig.configure.get(car.getParkingSpot())[2];
-					int straightExit = 240 - ParkingSpotsConfig.configure.get(car.getParkingSpot())[1];
+					int straightExit = 400 - ParkingSpotsConfig.configure.get(car.getParkingSpot())[1];
 					int upExit = ParkingSpotsConfig.configure.get(car.getParkingSpot())[0];
 					
 					if(car.isVipCar())
 					{
 						downExit = ParkingSpotsConfig.configureVip.get(car.getParkingSpot())[0];
-						straightExit = 300 - ParkingSpotsConfig.configureVip.get(car.getParkingSpot())[1];
+						straightExit = 400 - ParkingSpotsConfig.configureVip.get(car.getParkingSpot())[1];
 						upExit = ParkingSpotsConfig.configureVip.get(car.getParkingSpot())[2];
 					}
 					
@@ -858,15 +887,17 @@ public class ParkingSimulator extends JComponent {
 
 	@Override
 	public void paintComponent(Graphics g) {
-
-		g.drawImage(parkingBackground,0,0,null);
+		if(parkingLotMaintainance) 
+			g.drawImage(parkingBackgroundFire,0,0,null);
+		else
+			g.drawImage(parkingBackground,0,0,null);
 		if(pedetrianRightLight)
 		{
-			g.drawImage( greenCrossWalk, 693, 160, 38, 152, null);
+			g.drawImage( greenCrossWalk, 785, 160, 38, 152, null);
 		}
 		if(pedetrianLeftLight)
 		{
-			g.drawImage( greenCrossWalk, 340, 160, 38, 152, null);
+			g.drawImage( greenCrossWalk, 260, 160, 38, 152, null);
 		}
 		g.setColor(Color.CYAN);
 		for(Car car: carList) {
@@ -874,35 +905,35 @@ public class ParkingSimulator extends JComponent {
 		}
 		if(!gateEntrance)
 		{
-			g.drawImage(gateClose, 740, 159, 36, 60, null);
+			g.drawImage(gateClose, 835, 159, 36, 60, null);
 		}
 		else
 		{
-			g.drawImage(gateOpen, 740, 159, 36, 60, null);
+			g.drawImage(gateOpen, 835, 159, 36, 60, null);
 		}
 		if(!gateExit)
 		{
-			g.drawImage(gateClose, 380, 159, 36, 60, null);
+			g.drawImage(gateClose, 300, 159, 36, 60, null);
 		}
 		else
 		{
-			g.drawImage(gateOpen, 380, 159, 36, 60, null);
+			g.drawImage(gateOpen, 300, 159, 36, 60, null);
 		}
 		if(!gateVipEntrance)
 		{
-			g.drawImage(gateVipClose, 320, 245, 36, 60, null);
+			g.drawImage(gateVipClose, 240, 245, 36, 60, null);
 		}
 		else
 		{
-			g.drawImage(gateVipOpen, 320, 245, 36, 60, null);
+			g.drawImage(gateVipOpen, 240, 245, 36, 60, null);
 		}
 		if(!gateVipExit)
 		{
-			g.drawImage(gateVipClose, 680, 245, 36, 60, null);
+			g.drawImage(gateVipClose, 760, 245, 36, 60, null);
 		}
 		else
 		{
-			g.drawImage(gateVipOpen, 680, 245, 36, 60, null);
+			g.drawImage(gateVipOpen, 760, 245, 36, 60, null);
 		}
 		if(pedUpRight)
 		{
@@ -920,7 +951,13 @@ public class ParkingSimulator extends JComponent {
 		{
 			g.drawImage( pedestrianDownLeft.img, pedestrianDownLeft.x, pedestrianDownLeft.y, 30, 30, null);
 		}
-			
+		for (int i = 0;i<9;i++) {
+			if(mainSpot[i]) {
+				System.out.println("spot: "+i);
+				g.drawImage(spotMaintain, parkingLotConf.get(i)[0], parkingLotConf.get(i)[1], 80, 80, null);
+			}
+				
+		}
 	}
 
 	
@@ -933,7 +970,9 @@ public class ParkingSimulator extends JComponent {
 		ParkingSimulator parkingLot = new ParkingSimulator();
 		f.setContentPane(parkingLot);
 		f.setVisible(true);
-		Scenarios.createRandomScenario();
+    	Scenarios.createRandomScenario();
+//		Scenarios.createThirdScenario();
+//		Scenarios.createSecondScenario();
 //		Scenarios.createFifthScenario();
 //		Scenarios.createTestScenario();
 		

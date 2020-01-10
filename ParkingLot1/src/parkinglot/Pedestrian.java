@@ -23,22 +23,22 @@ public class Pedestrian {
 		this.position = position;
 		if(position == 0)
 		{
-			this.x = 693;
+			this.x = 790;
 			this.y = 30;
 		}
 		else if(position == 1)
 		{
-			this.x = 693;
+			this.x = 790;
 			this.y = 400;
 		}
 		else if(position == 2)
 		{
-			this.x = 340;
+			this.x = 270;
 			this.y = 30;
 		}
 		else
 		{
-			this.x = 340;
+			this.x = 270;
 			this.y = 400;
 		}
 		

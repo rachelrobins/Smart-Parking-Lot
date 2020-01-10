@@ -40,6 +40,7 @@ asm G carExit -> !(next(carExit));
 
 asm G carVipExit -> !(next(carVipExit));
 asm G ((carVipEntrance & freeSpot != 8 & !pedetrianLeftLight)-> !(next(carVipEntrance)));
+//asm G forall j in Int(0..numOfSpots).(spotMaintainace[j]->! carInSpot[j]);
 
 
 asm !carExit; // at the beginning the parking lot is empty
@@ -56,7 +57,6 @@ gar !gateVipEntrance;
 
 gar GF !pedetrianRightLight;
 gar GF !pedetrianLeftLight;
-
 
 
 gar G (carEntrance & freeSpot != 8 & !gateVipEntrance & !pedetrianRightLight) -> gateEntrance; // if there are spots available in the parking lot - open the gate
@@ -95,7 +95,12 @@ gar G forall i in Int(0..numOfSpots).(spotLight[i] <->carInSpot[i]);
 gar G exists i in Int(0..numOfSpotsPlusOne).forall j in Int(0..numOfSpotsPlusOne).(j<i->(spotLight[j]=true | spotMaintainace[j] = true)) &spotMaintainace[i] = false & spotLight[i]=false & freeSpot=i;  
 
 gar trig [true]*([gateEntrance | gateVipEntrance][true]*){3} |=>[parkingLotMaintainace];
+gar trig ([true]*([parkingLotMaintainace][true]*))|=>[!parkingLotMaintainace]{3};
 
+
+
+gar G spotMaintainace[0]-> !(spotMaintainace[1]|spotMaintainace[2]|spotMaintainace[3]|spotMaintainace[4]|spotMaintainace[5]|spotMaintainace[6]|spotMaintainace[7]);
+gar G spotMaintainace[0]-> !(spotMaintainace[1]|spotMaintainace[2]|spotMaintainace[3]|spotMaintainace[4]|spotMaintainace[5]|spotMaintainace[6]|spotMaintainace[7]);
 gar pRespondsToS(pedestrianRight, pedetrianRightLight);
 gar pRespondsToS(pedestrianLeft, pedetrianLeftLight);
 
@@ -103,6 +108,15 @@ gar pRespondsToS(pedestrianLeft, pedetrianLeftLight);
 asm G parkingLotMaintainace -> (forall k in Int(0..numOfSpots).(next(carInSpot[k] = false)));
 gar G parkingLotMaintainace -> (forall k in Int(0..numOfSpotsPlusOne).(next(spotLight[k] = false)));
 gar G parkingLotMaintainace -> (forall k in Int(0..numOfSpotsPlusOne).(next(spotMaintainace[k] = false)));
+
+gar G spotMaintainace[0]-> !(spotMaintainace[1]|spotMaintainace[2]|spotMaintainace[3]|spotMaintainace[4]|spotMaintainace[5]|spotMaintainace[6]|spotMaintainace[7]);
+gar G spotMaintainace[1]-> !(spotMaintainace[0]|spotMaintainace[2]|spotMaintainace[3]|spotMaintainace[4]|spotMaintainace[5]|spotMaintainace[6]|spotMaintainace[7]);
+gar G spotMaintainace[2]-> !(spotMaintainace[1]|spotMaintainace[0]|spotMaintainace[3]|spotMaintainace[4]|spotMaintainace[5]|spotMaintainace[6]|spotMaintainace[7]);
+gar G spotMaintainace[3]-> !(spotMaintainace[1]|spotMaintainace[2]|spotMaintainace[0]|spotMaintainace[4]|spotMaintainace[5]|spotMaintainace[6]|spotMaintainace[7]);
+gar G spotMaintainace[4]-> !(spotMaintainace[1]|spotMaintainace[2]|spotMaintainace[3]|spotMaintainace[0]|spotMaintainace[5]|spotMaintainace[6]|spotMaintainace[7]);
+gar G spotMaintainace[5]-> !(spotMaintainace[1]|spotMaintainace[2]|spotMaintainace[3]|spotMaintainace[4]|spotMaintainace[0]|spotMaintainace[6]|spotMaintainace[7]);
+gar G spotMaintainace[6]-> !(spotMaintainace[1]|spotMaintainace[2]|spotMaintainace[3]|spotMaintainace[4]|spotMaintainace[5]|spotMaintainace[0]|spotMaintainace[7]);
+gar G spotMaintainace[7]-> !(spotMaintainace[1]|spotMaintainace[2]|spotMaintainace[3]|spotMaintainace[4]|spotMaintainace[5]|spotMaintainace[6]|spotMaintainace[0]);
 
 
 asm G parkingLotMaintainace -> next(!carVipExit);
