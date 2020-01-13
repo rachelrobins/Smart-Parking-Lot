@@ -1,22 +1,30 @@
 package parkinglot;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Graphics;
+import java.awt.GridBagConstraints;
 import java.util.List;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JTextField;
 import javax.swing.WindowConstants;
 
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Random;
-
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
@@ -39,12 +47,14 @@ public class ParkingSimulator extends JComponent {
 	
 	Random random = new Random();
 	int numOfSpots = 8;
-
+	public static boolean scenarioSwitch = false;
+	
 	// system values
 	boolean gateEntrance = false;
 	boolean gateExit;
 	boolean gateVipEntrance = false;
 	boolean gateVipExit;
+	boolean enableMain = false;
 	int freeSpot;
 	boolean[] spotLight  = new boolean[9];
 	boolean[] carInSpot;
@@ -291,157 +301,167 @@ public class ParkingSimulator extends JComponent {
 				
 				// Instantiate a new controller executor
 				
-				executor = new ControllerExecutor(true, false);
-
-				while (true) {	
-					try {
-						executeAddCars();
-					} catch (Exception e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-					executeAddPeds();
-					Map<String, String> sysValues;
-					carInQWasFound = false;
-					carInExitWasFound  = false;
-					carVipInQWasFound = false;
-					carVipInExitWasFound = false;
-					try {
-						if(parkingLotMaintainance)
+				while(true)
+				{
+					executor = new ControllerExecutor(true, false);
+					System.out.println("new scenario");
+					while (true) {	
+						if(scenarioSwitch)
 						{
-							System.out.println("In maint");
-							executor.setInputValue("carEntrance", "false");
-							executor.setInputValue("carExit", "false");
-							executor.setInputValue("carVipExit", "false");
-							executor.setInputValue("carVipEntrance", "false");
-							for (int i = 0; i < numOfSpots;i++) 
-							{
-								carInSpot[i] = false;
-							}		
+							System.out.println("finished while");
+							carList.clear();
+							scenarioSwitch = false;
+							break;
 						}
-						else
-						{
-							carInSpot = new boolean [] {false,false,false,false,false,false,false,false};
-							for(Car car : carList) {
-								
-								if(car.getState() == CarStates.IN_QUEUE_FIRST && !gateEntrance) {
-									//System.out.println("car entrance true should follow gate entrance true");
-									if(car.isVipCar())
-									{
-										executor.setInputValue("carVipEntrance", "true");
-										carVipInQWasFound = true;
-	
-									}
-									else
-									{
-										executor.setInputValue("carEntrance", "true");
-										carInQWasFound = true;
-									}
-								}
-								if(car.getState() == CarStates.EXITING) {
-									if(car.isVipCar())
-									{
-										executor.setInputValue("carVipExit", "true");
-										carVipInExitWasFound = true;
-									}
-									else
-									{
-										executor.setInputValue("carExit", "true");
-										carInExitWasFound = true;
-	
-									}
-									
-								}
-								//System.out.println("car in spot" + car.getParkingSpot());
-								if(car.getState() == CarStates.PARKED || car.getState() == CarStates.ENTER_PARKING_LOT) 
-								{	
-									carInSpot[car.getParkingSpot()]= true;
-								}
-							}
-							if(!carVipInQWasFound)
+						try {
+							executeAddCars();
+						} catch (Exception e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+						executeAddPeds();
+						Map<String, String> sysValues;
+						carInQWasFound = false;
+						carInExitWasFound  = false;
+						carVipInQWasFound = false;
+						carVipInExitWasFound = false;
+						try {
+							executor.setInputValue("enableMain", enableMain ? "true" : "false");
+							if(parkingLotMaintainance)
 							{
-								executor.setInputValue("carVipEntrance", "false");
-	
-							}
-							if(!carInQWasFound) 
-							{
+								System.out.println("In maint");
 								executor.setInputValue("carEntrance", "false");
-							}
-							if(!carInExitWasFound) 
-							{
 								executor.setInputValue("carExit", "false");
-							}
-							if(!carVipInExitWasFound)
-							{
 								executor.setInputValue("carVipExit", "false");
-	
+								executor.setInputValue("carVipEntrance", "false");
+								for (int i = 0; i < numOfSpots;i++) 
+								{
+									carInSpot[i] = false;
+								}		
 							}
-							
-							for (int i =0; i<numOfSpots;i++) 
+							else
 							{
-								executor.setInputValue("carInSpot" +"["+i+"]",carInSpot[i] ? "true" : "false");
-							}
-						}	
-						if(pedUpRight || pedDownRight)
-						{
-							executor.setInputValue("pedestrianRight", "true");
-						}
-						else
-						{
-							executor.setInputValue("pedestrianRight", "false");
-						}
-						
-						if(pedUpLeft || pedDownLeft)
-						{
-							executor.setInputValue("pedestrianLeft", "true");
-						}
-						else
-						{
-							executor.setInputValue("pedestrianLeft", "false");
-						}
-							
-						
-					}
-					catch (ControllerExecutorException e) {
-						e.printStackTrace();
-					}
+								carInSpot = new boolean [] {false,false,false,false,false,false,false,false};
+								for(Car car : carList) {
 									
-					// Paint the street on the screen
-					try {
-						executor.updateState(true);
-					} catch (ControllerExecutorException e) {
-						e.printStackTrace();
+									if(car.getState() == CarStates.IN_QUEUE_FIRST && !gateEntrance) {
+										//System.out.println("car entrance true should follow gate entrance true");
+										if(car.isVipCar())
+										{
+											executor.setInputValue("carVipEntrance", "true");
+											carVipInQWasFound = true;
+		
+										}
+										else
+										{
+											executor.setInputValue("carEntrance", "true");
+											carInQWasFound = true;
+										}
+									}
+									if(car.getState() == CarStates.EXITING) {
+										if(car.isVipCar())
+										{
+											executor.setInputValue("carVipExit", "true");
+											carVipInExitWasFound = true;
+										}
+										else
+										{
+											executor.setInputValue("carExit", "true");
+											carInExitWasFound = true;
+		
+										}
+										
+									}
+									//System.out.println("car in spot" + car.getParkingSpot());
+									if(car.getState() == CarStates.PARKED || car.getState() == CarStates.ENTER_PARKING_LOT) 
+									{	
+										carInSpot[car.getParkingSpot()]= true;
+									}
+								}
+								if(!carVipInQWasFound)
+								{
+									executor.setInputValue("carVipEntrance", "false");
+		
+								}
+								if(!carInQWasFound) 
+								{
+									executor.setInputValue("carEntrance", "false");
+								}
+								if(!carInExitWasFound) 
+								{
+									executor.setInputValue("carExit", "false");
+								}
+								if(!carVipInExitWasFound)
+								{
+									executor.setInputValue("carVipExit", "false");
+		
+								}
+								
+								for (int i =0; i<numOfSpots;i++) 
+								{
+									executor.setInputValue("carInSpot" +"["+i+"]",carInSpot[i] ? "true" : "false");
+								}
+							}	
+							if(pedUpRight || pedDownRight)
+							{
+								executor.setInputValue("pedestrianRight", "true");
+							}
+							else
+							{
+								executor.setInputValue("pedestrianRight", "false");
+							}
+							
+							if(pedUpLeft || pedDownLeft)
+							{
+								executor.setInputValue("pedestrianLeft", "true");
+							}
+							else
+							{
+								executor.setInputValue("pedestrianLeft", "false");
+							}
+								
+							
+						}
+						catch (ControllerExecutorException e) {
+							e.printStackTrace();
+						}
+										
+						// Paint the street on the screen
+						try {
+							executor.updateState(true);
+						} catch (ControllerExecutorException e) {
+							e.printStackTrace();
+						}
+						sysValues = executor.getCurOutputs();
+						//System.out.println(sysValues.get("spotsCounter"));
+						gateEntrance = sysValues.get("gateEntrance").equals("true") ? true : false;
+//						System.out.println("the gate is"+gateEntrance);
+						gateExit = sysValues.get("gateExit").equals("true") ? true : false;
+						freeSpot  = Integer.parseInt(sysValues.get("freeSpot"));
+						pedetrianLeftLight = sysValues.get("pedetrianLeftLight").equals("true") ? true : false;
+						pedetrianRightLight = sysValues.get("pedetrianRightLight").equals("true") ? true : false;
+						gateVipEntrance = sysValues.get("gateVipEntrance").equals("true") ? true : false;
+						gateVipExit = sysValues.get("gateVipExit").equals("true") ? true : false;
+						parkingLotMaintainance = sysValues.get("parkingLotMaintainace").equals("true") ? true : false;
+						for (int i =0; i<numOfSpots;i++) 
+						{
+							mainSpot[i] = sysValues.get("spotMaintenance" +"["+i+"]").equals("true") ? true : false;
+						}
+						
+						try {
+							paintParkingLot();
+						} catch (Exception e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						executeRemoveCars();
+						executeRemovePeds();
+						deleteOutCars();
+						
 					}
-					sysValues = executor.getCurOutputs();
-					//System.out.println(sysValues.get("spotsCounter"));
-					gateEntrance = sysValues.get("gateEntrance").equals("true") ? true : false;
-//					System.out.println("the gate is"+gateEntrance);
-					gateExit = sysValues.get("gateExit").equals("true") ? true : false;
-					freeSpot  = Integer.parseInt(sysValues.get("freeSpot"));
-					pedetrianLeftLight = sysValues.get("pedetrianLeftLight").equals("true") ? true : false;
-					pedetrianRightLight = sysValues.get("pedetrianRightLight").equals("true") ? true : false;
-					gateVipEntrance = sysValues.get("gateVipEntrance").equals("true") ? true : false;
-					gateVipExit = sysValues.get("gateVipExit").equals("true") ? true : false;
-					parkingLotMaintainance = sysValues.get("parkingLotMaintainace").equals("true") ? true : false;
-					for (int i =0; i<numOfSpots;i++) 
-					{
-						mainSpot[i] = sysValues.get("spotMaintainace" +"["+i+"]").equals("true") ? true : false;
-					}
-					
-					try {
-						paintParkingLot();
-					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					executeRemoveCars();
-					executeRemovePeds();
-					deleteOutCars();
-					
 				}
-
 			}
-		});
+			});
 		
 		// Load images
 		try {
@@ -482,6 +502,7 @@ public class ParkingSimulator extends JComponent {
 
 			Thread.sleep(50);
 			System.out.println("At the start of paint");
+			repaint();
 //			System.out.println("carEnters:" + carEnters + " carInQueue:"+carInQueue+" carParks" + carParks + " carPrepare" +carPrepareToExit + " carExit" + carExit);
 			// paint relevant state by phase of car
 			// now we support only 1 car
@@ -960,23 +981,109 @@ public class ParkingSimulator extends JComponent {
 		}
 	}
 
+	static JFrame f = new JFrame("ParkingLot Simulator");
+	public static void GUI()
+	{
+		f.setVisible(true);
+		JButton b=new JButton("Add Car");
+	    b.setBounds(360,420,120,30);  
+	    b.addActionListener(new ActionListener(){  
+	    		public void actionPerformed(ActionEvent e){  
+	    		try {
+					ParkingSimulator.addCarEnterance();
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}  
+	        }  
+	    });  
+	    f.add(b);
+	    JButton b1=new JButton("Add Vip Car");
+	    b1.setBounds(480,420,120,30);  
+	    b1.addActionListener(new ActionListener(){  
+	    		public void actionPerformed(ActionEvent e){  
+	    		try {
+					ParkingSimulator.addVipCarEnterance();
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}  
+	        }  
+	    });  
+	    f.add(b1);
+	    JButton b2=new JButton("Add Pedestrian");
+	    b2.setBounds(600,420,150,30);  
+	    b2.addActionListener(new ActionListener(){  
+	    		public void actionPerformed(ActionEvent e){  
+	    		try {
+					ParkingSimulator.addPedestrian(0);
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}  
+	        }  
+	    });  
+
+
+	    
+	    
+	    JButton startBtn=new JButton("1");
+	    startBtn.setBounds(650,450,50,50);  
+	    startBtn.addActionListener(new ActionListener(){  
+	    		public void actionPerformed(ActionEvent e){  
+	    		try {
+						scenarioSwitch = true;
+						Scenarios.createZeroScenario();
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}  
+	        }  
+	    });  
+	    
+	    f.add(startBtn);
+	    
+	    
+	    JButton startBtn2=new JButton("2");
+	    startBtn2.setBounds(600,450,50,50);  
+	    startBtn2.addActionListener(new ActionListener(){  
+	    		public void actionPerformed(ActionEvent e){  
+	    		try {
+						scenarioSwitch = true;
+						Scenarios.createZeroScenario();
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}  
+	        }  
+	    });  
+	    
+	    f.add(startBtn2);
+	    
+	    f.add(b2);
+	    
+	    f.setLayout(null);  
+	    f.setVisible(true);
+	    
+
+	}
 	
 	// initialize Parking Lot 
 	public static void main(String args[]) throws Exception {
 		ParkingSpotsConfig.initMap();
-		JFrame f = new JFrame("ParkingLot Simulator");
 		f.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-		f.setSize(1093, 490);
+		f.setSize(1093, 590);
 		ParkingSimulator parkingLot = new ParkingSimulator();
 		f.setContentPane(parkingLot);
-		f.setVisible(true);
-    	Scenarios.createRandomScenario();
+		GUI();
+		Scenarios.createRandomScenario();
 //		Scenarios.createThirdScenario();
 //		Scenarios.createSecondScenario();
 //		Scenarios.createFifthScenario();
 //		Scenarios.createTestScenario();
 		
 	}
+	
 
 	
 }

@@ -24,6 +24,7 @@ public class Scenarios {
 	{
 		Car car = ParkingSimulator.addCarEnterance();
 		int id = car.getId();
+		System.out.println("in zero");
 		Thread.sleep(8000);
 		System.out.println("car state " + car.getState());
 
@@ -157,6 +158,11 @@ public class Scenarios {
 		Random rand = new Random();
 		while(true)
 		{
+			if(ParkingSimulator.scenarioSwitch)
+			{
+				System.out.println("finished random");
+				return;
+			}
 			// Randomize Pedestrians
 			for(int i = 0; i < 4; i++)
 			{
