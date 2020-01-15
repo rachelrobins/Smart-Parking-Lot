@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.util.List;
@@ -16,9 +17,13 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -982,6 +987,8 @@ public class ParkingSimulator extends JComponent {
 	}
 
 	static JFrame f = new JFrame("ParkingLot Simulator");
+	static JButton startBtnArr[] = new JButton[6];
+	
 	public static void GUI()
 	{
 		f.setVisible(true);
@@ -1025,11 +1032,12 @@ public class ParkingSimulator extends JComponent {
 	    });  
 
 
+	    int firstLineScenarioY = 450;
+	    int secLineScenarioY = 500;
 	    
-	    
-	    JButton startBtn=new JButton("1");
-	    startBtn.setBounds(650,450,50,50);  
-	    startBtn.addActionListener(new ActionListener(){  
+	    startBtnArr[0]=new JButton("0");
+	    startBtnArr[0].setBounds(450,firstLineScenarioY,50,50);  
+	    startBtnArr[0].addActionListener(new ActionListener(){  
 	    		public void actionPerformed(ActionEvent e){  
 	    		try {
 						scenarioSwitch = true;
@@ -1041,16 +1049,16 @@ public class ParkingSimulator extends JComponent {
 	        }  
 	    });  
 	    
-	    f.add(startBtn);
+	    f.add(startBtnArr[0]);
 	    
 	    
-	    JButton startBtn2=new JButton("2");
-	    startBtn2.setBounds(600,450,50,50);  
-	    startBtn2.addActionListener(new ActionListener(){  
+	    startBtnArr[1]=new JButton("1");
+	    startBtnArr[1].setBounds(500,firstLineScenarioY,50,50);  
+	    startBtnArr[1].addActionListener(new ActionListener(){  
 	    		public void actionPerformed(ActionEvent e){  
 	    		try {
 						scenarioSwitch = true;
-						Scenarios.createZeroScenario();
+						Scenarios.createFirstScenario();
 				} catch (Exception e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
@@ -1058,7 +1066,74 @@ public class ParkingSimulator extends JComponent {
 	        }  
 	    });  
 	    
-	    f.add(startBtn2);
+	    f.add(startBtnArr[1]);
+	    
+	    
+	    
+	    startBtnArr[2]=new JButton("2");
+	    startBtnArr[2].setBounds(550,firstLineScenarioY,50,50);  
+	    startBtnArr[2].addActionListener(new ActionListener(){  
+	    		public void actionPerformed(ActionEvent e){  
+	    		try {
+						scenarioSwitch = true;
+						Scenarios.createSecondScenario();
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}  
+	        }  
+	    });  
+	    
+	    f.add(startBtnArr[2]);
+	    
+	    startBtnArr[3]=new JButton("3");
+	    startBtnArr[3].setBounds(450,secLineScenarioY,50,50);  
+	    startBtnArr[3].addActionListener(new ActionListener(){  
+	    		public void actionPerformed(ActionEvent e){  
+	    		try {
+						scenarioSwitch = true;
+						Scenarios.createThirdScenario();
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}  
+	        }  
+	    });  
+	    
+	    f.add(startBtnArr[3]);
+	    
+	    startBtnArr[4]=new JButton("4");
+	    startBtnArr[4].setBounds(500,secLineScenarioY,50,50);  
+	    startBtnArr[4].addActionListener(new ActionListener(){  
+	    		public void actionPerformed(ActionEvent e){  
+	    		try {
+						scenarioSwitch = true;
+						Scenarios.createForthScenario();
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}  
+	        }  
+	    });  
+	    
+	    f.add(startBtnArr[4]);
+	    
+	    startBtnArr[5]=new JButton("5");
+	    startBtnArr[5].setBounds(550,secLineScenarioY,50,50);  
+	    startBtnArr[5].addActionListener(new ActionListener(){  
+	    		public void actionPerformed(ActionEvent e){  
+	    		try {
+						scenarioSwitch = true;
+						Scenarios.createThirdScenario();
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}  
+	        }  
+	    });  
+	    
+	    f.add(startBtnArr[5]);
+	    
 	    
 	    f.add(b2);
 	    
@@ -1066,6 +1141,23 @@ public class ParkingSimulator extends JComponent {
 	    f.setVisible(true);
 	    
 
+	}
+	
+	public static void enableButtons()
+	{
+		for(int i = 0; i < 6; i++)
+		{
+			startBtnArr[i].setEnabled(true);
+		}
+	}
+	
+	
+	public static void disableButtons()
+	{
+		for(int i = 0; i < 6; i++)
+		{
+			startBtnArr[i].setEnabled(false);
+		}
 	}
 	
 	// initialize Parking Lot 

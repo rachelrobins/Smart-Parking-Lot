@@ -22,6 +22,7 @@ public class Scenarios {
 	// Car enters the parking lot and then leaves
 	public static void createZeroScenario() throws Exception
 	{
+		ParkingSimulator.disableButtons();
 		Car car = ParkingSimulator.addCarEnterance();
 		int id = car.getId();
 		System.out.println("in zero");
@@ -38,15 +39,19 @@ public class Scenarios {
 	
 	public static void createFirstScenario() throws Exception
 	{
+		ParkingSimulator.disableButtons();
 		Car car = ParkingSimulator.addCarEnterance();
 		Thread.sleep(100);
 		car = ParkingSimulator.addCarEnterance();
+		Thread.sleep(10000);
+		ParkingSimulator.enableButtons();
 	}
 	
 	// Second Scenario 
 	// Rush Hour - a lot of regular cars enters the parking lot
 	public static void createSecondScenario() throws Exception
 	{
+		ParkingSimulator.disableButtons();
 		int id = ParkingSimulator.addVipCarEnterance().getId();
 		Thread.sleep(7000);
 		int id2 = ParkingSimulator.addVipCarEnterance().getId();
@@ -70,12 +75,15 @@ public class Scenarios {
 		ParkingSimulator.addVipCarEnterance();
 			
 		Thread.sleep(10000);
+		
+		ParkingSimulator.enableButtons();
 	}
 	
 	// Third Scenario 
 	// Rush Hour - a lot of cars, both vip and regular, enters the parking lot
 	public static void createThirdScenario() throws Exception
 	{
+		ParkingSimulator.disableButtons();
 
 		ParkingSimulator.addVipCarEnterance();
 		ParkingSimulator.addCarEnterance();
@@ -92,6 +100,7 @@ public class Scenarios {
 			ParkingSimulator.addCarEnterance();
 
 		}
+		ParkingSimulator.enableButtons();
 	}
 	
 
@@ -100,6 +109,7 @@ public class Scenarios {
 	// Pedestrian
 	public static void createForthScenario() throws Exception
 	{
+		ParkingSimulator.disableButtons();
 		ParkingSimulator.addPedestrian(0);
 		ParkingSimulator.addPedestrian(1);
 		ParkingSimulator.addPedestrian(2);
@@ -109,18 +119,21 @@ public class Scenarios {
 		{
 			ParkingSimulator.addPedestrian(3);
 		}
+		ParkingSimulator.enableButtons();
 	}
 	
 	// Fifth Scenario
 	// War between vip and regular vehicles
 	public static void createFifthScenario() throws Exception
 	{
+		ParkingSimulator.disableButtons();
 		for(int i = 0; i < 7; i++)
 		{
 			ParkingSimulator.addVipCarEnterance();
 			ParkingSimulator.addCarEnterance();
 			Thread.sleep(15000);
 		}
+		ParkingSimulator.enableButtons();
 	}
 	
 	public static void createTestScenario() throws Exception
@@ -138,6 +151,7 @@ public class Scenarios {
 			Thread.sleep(5000);
 
 		}
+		ParkingSimulator.enableButtons();
 		
 	}
 	
