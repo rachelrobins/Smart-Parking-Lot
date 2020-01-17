@@ -9,7 +9,7 @@ enum ScenarioStep {
 	ADD_PED,
 	REMOVE_CAR,
 	REMOVE_VIP_CAR,
-	IS_MAINT;
+	ENABLE_MAINT;
 }
 
 public class Scenarios {
@@ -27,40 +27,30 @@ public class Scenarios {
 		return carList;
 		
 	}
-	// First Scenario
-	// Car enters the parking lot and then leaves
+	// Zero Scenario
+	// One car enters and exits the parking lot
 	public static void createZeroScenario() throws Exception
 	{
 		ParkingSimulator.scenarioSteps.add(ScenarioStep.ADD_CAR);
 		ParkingSimulator.scenarioSteps.add(ScenarioStep.REMOVE_CAR);
 	}
 	
-	public static void createFirstScenario() throws Exception
-	{
-//		ParkingSimulator.disableButtons();
-		ParkingSimulator.scenarioSteps.add(ScenarioStep.ADD_CAR);
-		ParkingSimulator.scenarioSteps.add(ScenarioStep.ADD_CAR);
-//		Car car = ParkingSimulator.addCarEnterance();
-//		Thread.sleep(100);
-//		car = ParkingSimulator.addCarEnterance();
-//		Thread.sleep(10000);
-////		ParkingSimulator.enableButtons();
-	}
 	
-	// Second Scenario 
-	// Rush Hour - a lot of regular cars enters the parking lot
-	public static void createSecondScenario() throws Exception
+	// First Scenario
+	// It’s rush hour and the parking lot is full with regular cars.
+	public static void createFirstScenario() throws Exception
 	{
 		for(int i = 0; i < 9; i++)
 		{
 			ParkingSimulator.scenarioSteps.add(ScenarioStep.ADD_CAR);			
 		}
-		
 	}
 	
-	// Third Scenario 
-	// Rush Hour - a lot of cars, both vip and regular, enters the parking lot
-	public static void createThirdScenario() throws Exception
+	// Second Scenario 
+	// Regular vehicle and VIP vehicle want to enter the parking lot at the same time.
+	// (Note: it also depends on the pedestrian lights)
+
+	public static void createSecondScenario() throws Exception
 	{
 		for(int i = 0; i < 4; i++)
 		{
@@ -69,42 +59,37 @@ public class Scenarios {
 		}
 	}
 	
+	// Third Scenario 
+	// Pedestrian cross both cross-walks while cars want to enter the parking lot.
+	public static void createThirdScenario() throws Exception
+	{
+		ParkingSimulator.scenarioSteps.add(ScenarioStep.ADD_PED);			
+		ParkingSimulator.scenarioSteps.add(ScenarioStep.ADD_CAR);
+		ParkingSimulator.scenarioSteps.add(ScenarioStep.ADD_PED);
+		ParkingSimulator.scenarioSteps.add(ScenarioStep.ADD_PED);			
+		ParkingSimulator.scenarioSteps.add(ScenarioStep.ADD_PED);			
+		ParkingSimulator.scenarioSteps.add(ScenarioStep.REMOVE_CAR);
+		ParkingSimulator.scenarioSteps.add(ScenarioStep.ADD_PED);			
+	}
+	
 
 	
 	// Forth Scenario
-	// Pedestrian
+	// Vehicles enters the parking lot and suddenly a fire bursts.
 	public static void createForthScenario() throws Exception
 	{
-		ParkingSimulator.scenarioSteps.add(ScenarioStep.ADD_CAR);
-		ParkingSimulator.scenarioSteps.add(ScenarioStep.REMOVE_CAR);
-
+		ParkingSimulator.scenarioSteps.add(ScenarioStep.ENABLE_MAINT);			
 		for(int i = 0; i < 4; i++)
 		{
-			ParkingSimulator.scenarioSteps.add(ScenarioStep.ADD_PED);			
+			ParkingSimulator.scenarioSteps.add(ScenarioStep.ADD_VIP_CAR);			
+			ParkingSimulator.scenarioSteps.add(ScenarioStep.ADD_CAR);
 		}
-		
 	}
 	
-	// Fifth Scenario
-	// War between vip and regular vehicles
-	public static void createFifthScenario() throws Exception
-	{
-//		ParkingSimulator.disableButtons();
-		for(int i = 0; i < 7; i++)
-		{
-			ParkingSimulator.addVipCarEnterance();
-			ParkingSimulator.addCarEnterance();
-			Thread.sleep(15000);
-		}
-//		ParkingSimulator.enableButtons();
-	}
 	
-	public static void createTestScenario() throws Exception
-	{
-		
-	}
-	
-// Random cars entering and leaving the parking lot
+//  Random cars entering and leaving the parking lot
+//	Random pedestrians cross the cross-walks
+//	Maintenance is disabled.
 	public static void createRandomScenario() throws Exception
 	{
 		LinkedList<Car> carsInParkingLot = new LinkedList<Car>();
