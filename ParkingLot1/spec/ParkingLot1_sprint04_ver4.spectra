@@ -288,6 +288,7 @@ gar G !enableMain -> !parkingLotMaintenance;
 gar G enableMain -> !dummy;
 gar G !enableMain -> dummy;
 
+
 asm G parkingLotMaintenance -> (forall k in Int(0..numOfSpots).(next(carInSpot[k] = false)));
 asm G parkingLotMaintenance -> next(!carVipExit);
 asm G parkingLotMaintenance -> next(!carExit);
