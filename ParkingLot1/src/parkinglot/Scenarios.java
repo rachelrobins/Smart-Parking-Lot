@@ -3,6 +3,15 @@ package parkinglot;
 import java.util.LinkedList;
 import java.util.Random;
 
+enum ScenarioStep {
+	ADD_CAR,
+	ADD_VIP_CAR,
+	ADD_PED,
+	REMOVE_CAR,
+	REMOVE_VIP_CAR,
+	IS_MAINT;
+}
+
 public class Scenarios {
 	public static LinkedList<Car> safeAddCar(LinkedList<Car> carList) throws Exception{
 		Car car = ParkingSimulator.addCarEnterance();
@@ -22,85 +31,42 @@ public class Scenarios {
 	// Car enters the parking lot and then leaves
 	public static void createZeroScenario() throws Exception
 	{
-		ParkingSimulator.disableButtons();
-		Car car = ParkingSimulator.addCarEnterance();
-		int id = car.getId();
-		System.out.println("in zero");
-		Thread.sleep(8000);
-		System.out.println("car state " + car.getState());
-
-		while(car.getState()  != CarStates.PARKED) {
-			Thread.sleep(10);
-		}
-		
-		ParkingSimulator.removeCarFromParkingLot(id);
-		Thread.sleep(50000);
+		ParkingSimulator.scenarioSteps.add(ScenarioStep.ADD_CAR);
+		ParkingSimulator.scenarioSteps.add(ScenarioStep.REMOVE_CAR);
 	}
 	
 	public static void createFirstScenario() throws Exception
 	{
-		ParkingSimulator.disableButtons();
-		Car car = ParkingSimulator.addCarEnterance();
-		Thread.sleep(100);
-		car = ParkingSimulator.addCarEnterance();
-		Thread.sleep(10000);
-		ParkingSimulator.enableButtons();
+//		ParkingSimulator.disableButtons();
+		ParkingSimulator.scenarioSteps.add(ScenarioStep.ADD_CAR);
+		ParkingSimulator.scenarioSteps.add(ScenarioStep.ADD_CAR);
+//		Car car = ParkingSimulator.addCarEnterance();
+//		Thread.sleep(100);
+//		car = ParkingSimulator.addCarEnterance();
+//		Thread.sleep(10000);
+////		ParkingSimulator.enableButtons();
 	}
 	
 	// Second Scenario 
 	// Rush Hour - a lot of regular cars enters the parking lot
 	public static void createSecondScenario() throws Exception
 	{
-		ParkingSimulator.disableButtons();
-		int id = ParkingSimulator.addVipCarEnterance().getId();
-		Thread.sleep(7000);
-		int id2 = ParkingSimulator.addVipCarEnterance().getId();
-		for(int i = 0; i < 7; i++)
+		for(int i = 0; i < 9; i++)
 		{
-			Thread.sleep(10000);
-			ParkingSimulator.addVipCarEnterance();
-			
+			ParkingSimulator.scenarioSteps.add(ScenarioStep.ADD_CAR);			
 		}
-		Thread.sleep(10000);
-		ParkingSimulator.addVipCarEnterance();
-		Thread.sleep(10000);
-		ParkingSimulator.removeCarFromParkingLot(id);
-		Thread.sleep(50000);
-		ParkingSimulator.removeCarFromParkingLot(id2);
-		Thread.sleep(10000);
-		ParkingSimulator.addVipCarEnterance();
-		Thread.sleep(10000);
-		ParkingSimulator.addVipCarEnterance();
-		Thread.sleep(10000);
-		ParkingSimulator.addVipCarEnterance();
-			
-		Thread.sleep(10000);
 		
-		ParkingSimulator.enableButtons();
 	}
 	
 	// Third Scenario 
 	// Rush Hour - a lot of cars, both vip and regular, enters the parking lot
 	public static void createThirdScenario() throws Exception
 	{
-		ParkingSimulator.disableButtons();
-
-		ParkingSimulator.addVipCarEnterance();
-		ParkingSimulator.addCarEnterance();
-		Thread.sleep(7000);
-		ParkingSimulator.addCarEnterance();
-		Thread.sleep(7000);
-		ParkingSimulator.addCarEnterance();
-		Thread.sleep(7000);
-		ParkingSimulator.addCarEnterance();
-		for(int i = 0; i < 7; i++)
+		for(int i = 0; i < 4; i++)
 		{
-			Thread.sleep(15000);
-			ParkingSimulator.addVipCarEnterance();
-			ParkingSimulator.addCarEnterance();
-
+			ParkingSimulator.scenarioSteps.add(ScenarioStep.ADD_VIP_CAR);			
+			ParkingSimulator.scenarioSteps.add(ScenarioStep.ADD_CAR);
 		}
-		ParkingSimulator.enableButtons();
 	}
 	
 
@@ -109,49 +75,32 @@ public class Scenarios {
 	// Pedestrian
 	public static void createForthScenario() throws Exception
 	{
-		ParkingSimulator.disableButtons();
-		ParkingSimulator.addPedestrian(0);
-		ParkingSimulator.addPedestrian(1);
-		ParkingSimulator.addPedestrian(2);
-		ParkingSimulator.addPedestrian(3);
-		Scenarios.createZeroScenario();
-		for(int i = 0 ; i < 10; i++)
+		ParkingSimulator.scenarioSteps.add(ScenarioStep.ADD_CAR);
+		ParkingSimulator.scenarioSteps.add(ScenarioStep.REMOVE_CAR);
+
+		for(int i = 0; i < 4; i++)
 		{
-			ParkingSimulator.addPedestrian(3);
+			ParkingSimulator.scenarioSteps.add(ScenarioStep.ADD_PED);			
 		}
-		ParkingSimulator.enableButtons();
+		
 	}
 	
 	// Fifth Scenario
 	// War between vip and regular vehicles
 	public static void createFifthScenario() throws Exception
 	{
-		ParkingSimulator.disableButtons();
+//		ParkingSimulator.disableButtons();
 		for(int i = 0; i < 7; i++)
 		{
 			ParkingSimulator.addVipCarEnterance();
 			ParkingSimulator.addCarEnterance();
 			Thread.sleep(15000);
 		}
-		ParkingSimulator.enableButtons();
+//		ParkingSimulator.enableButtons();
 	}
 	
 	public static void createTestScenario() throws Exception
 	{
-		Car cars [] = new Car[8] ;
-		for(int i = 0; i < 8; i++)
-		{
-			cars[i] = ParkingSimulator.addVipCarEnterance();
-			Thread.sleep(5000);
-
-		}
-		for(int i = 0; i < 8; i++)
-		{
-			ParkingSimulator.removeCarFromParkingLot(cars[i].getId());
-			Thread.sleep(5000);
-
-		}
-		ParkingSimulator.enableButtons();
 		
 	}
 	
@@ -175,6 +124,7 @@ public class Scenarios {
 			if(ParkingSimulator.scenarioSwitch)
 			{
 				System.out.println("finished random");
+				ParkingSimulator.randomDone = true;
 				return;
 			}
 			// Randomize Pedestrians
@@ -182,6 +132,7 @@ public class Scenarios {
 			{
 				if(!pedsWaiting[i]) 
 				{
+					// Chances of adding pedestrian is 1 to 10
 					pedEntering[i] = rand.nextInt(10);
 				}
 			}
@@ -281,14 +232,23 @@ public class Scenarios {
 				if(parkedCars.size() != 0)
 				{
 					exitRandomCar = rand.nextInt(parkedCars.size());
-					ParkingSimulator.removeCarFromParkingLot(parkedCars.get(exitRandomCar).getId());
-					counter--;
-					carsInParkingLot.remove(exitRandomCar);
+					Car carToRemove = parkedCars.get(exitRandomCar);
+					if(!carToRemove.isRemoved())
+					{
+						ParkingSimulator.removeCarFromParkingLot(carToRemove.getId());
+						counter--;
+						carsInParkingLot.remove(exitRandomCar);
+					}
+					
 				}
 				parkedCars.clear();
 			}
-
-			Thread.sleep(7000);
+			if(ParkingSimulator.scenarioSwitch)
+			{
+				System.out.println("finished random");
+				return;
+			}
+			Thread.sleep(3000);
 		}
 	}
 }

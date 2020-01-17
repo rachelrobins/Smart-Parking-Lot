@@ -12,12 +12,12 @@ public class Pedestrian {
 	BufferedImage img;
 	Pedestrian.States state;
 	int position;
-	private static String[] pedImages = new String[] {"img/p1.png", "img/p2.png","img/p3.png"};
+	private static String[] pedImages = new String[] {"img/p1.png", "img/p2.png","img/p3.png", "img/p4.png"};
 	
 	public Pedestrian(int position) throws Exception
 	{
 		Random rnd = new Random();
-		int imgForPed = rnd.nextInt(3);
+		int imgForPed = rnd.nextInt(4);
 		this.img = ImageIO.read(new File(pedImages[imgForPed]));
 		this.state = Pedestrian.States.ENETERING;
 		this.position = position;

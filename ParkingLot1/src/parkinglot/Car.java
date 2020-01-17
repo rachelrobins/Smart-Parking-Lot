@@ -13,6 +13,7 @@ public class Car {
 	private int Y;
 	private int width;
 	private int height;
+	private boolean isRemoved;
 	private static int counter = 0;
 	static int carsVipInQ = 0;
 
@@ -26,6 +27,7 @@ public class Car {
 	public Car(boolean vipCar)
 	{
 		try {
+			this.setRemoved(false);
 			this.setId(counter);
 			this.state  = CarStates.INIT;
 			
@@ -185,6 +187,14 @@ public class Car {
 
 	public void setVipCar(boolean vipCar) {
 		this.vipCar = vipCar;
+	}
+
+	public boolean isRemoved() {
+		return isRemoved;
+	}
+
+	public void setRemoved(boolean isRemoved) {
+		this.isRemoved = isRemoved;
 	}
 	
 	

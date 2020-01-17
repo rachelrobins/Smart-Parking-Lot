@@ -59,13 +59,14 @@ public class ParkingSimulator extends JComponent {
 	boolean gateExit;
 	boolean gateVipEntrance = false;
 	boolean gateVipExit;
-	boolean enableMain = false;
+	static boolean enableMain = false;
 	int freeSpot;
 	boolean[] spotLight  = new boolean[9];
 	boolean[] carInSpot;
 	boolean[] mainSpot = new boolean[9];
 	
-	
+	static volatile boolean randomDone = false;
+	static int scenarioResetCnt = 0;
 	//draw help vars
 	boolean carHorizontal = false;
 	boolean carInQWasFound = false;
@@ -104,6 +105,8 @@ public class ParkingSimulator extends JComponent {
 	static LinkedList<Car> carList = new LinkedList<Car>();
 	static LinkedList<Pedestrian> pedsList = new LinkedList<Pedestrian>();
 	
+	static LinkedList<ScenarioStep> scenarioSteps = new LinkedList<ScenarioStep>();
+	
 	// pedestrian vars (env)
 	static boolean pedUpRight = false; 
 	static boolean pedDownRight = false;
@@ -120,14 +123,14 @@ public class ParkingSimulator extends JComponent {
 	Thread thread;
 	
 	public static void initMap() {
-		parkingLotConf.put(0,new Integer[] {620,50});
+		parkingLotConf.put(0,new Integer[] {630,50});
 		parkingLotConf.put(1,new Integer[] {550,50});
 		parkingLotConf.put(2,new Integer[] {470,50});
-		parkingLotConf.put(3,new Integer[] {410,50});
-		parkingLotConf.put(4,new Integer[] {620,350});
+		parkingLotConf.put(3,new Integer[] {380,50});
+		parkingLotConf.put(4,new Integer[] {630,350});
 		parkingLotConf.put(5,new Integer[] {550,350});
 		parkingLotConf.put(6,new Integer[] {470,350});
-		parkingLotConf.put(7,new Integer[] {410,350});
+		parkingLotConf.put(7,new Integer[] {380,350});
 	}
 	
 	private static void executeAddPeds()
@@ -207,6 +210,8 @@ public class ParkingSimulator extends JComponent {
 	private static void executeAddCars() throws Exception
 	{
 		LinkedList<Car> lst = new LinkedList<Car>();
+		flagVip = true;
+		flag = true;
 		for(Car car : carsToAdd)
 		{
 			carList.addLast(car);
@@ -239,6 +244,7 @@ public class ParkingSimulator extends JComponent {
 		if(Car.carsVipInQ == 1)
 		{
 			System.out.println("Too many VIP cars");
+			return null;
 		}
 		else
 		{
@@ -259,6 +265,7 @@ public class ParkingSimulator extends JComponent {
 		if(Car.carsInQ == 2)
 		{
 			System.out.println("Too many cars");
+			return null;
 		}
 		else 
 		{
@@ -277,6 +284,7 @@ public class ParkingSimulator extends JComponent {
 		{
 			if(car.getId() == carID)
 			{
+				car.setRemoved(true);
 				carsToRemove.add(car);
 				return;	
 			}
@@ -299,13 +307,30 @@ public class ParkingSimulator extends JComponent {
 		return ped;
 	}
 	
+	public static void resetBoard()
+	{
+		flagVip = false;
+		flag = false;
+		Car.carsInQ = 0;
+		Car.carsVipInQ = 0;
+		pedDownRight = false;
+		pedDownLeft = false;
+		pedUpRight = false;
+		pedUpLeft = false;
+		carList.clear();
+		carsToAdd.clear();
+		carsToRemove.clear();
+		enableMain = false;
+		System.out.println("done reset");
+	}
+	
+	LinkedList<Car> scenarioList = new LinkedList<Car>();
 	public ParkingSimulator() {
 		initMap();
 		Thread animationThread = new Thread(new Runnable() {
 			public void run() {
 				
 				// Instantiate a new controller executor
-				
 				while(true)
 				{
 					executor = new ControllerExecutor(true, false);
@@ -313,11 +338,142 @@ public class ParkingSimulator extends JComponent {
 					while (true) {	
 						if(scenarioSwitch)
 						{
-							System.out.println("finished while");
-							carList.clear();
+							scenarioResetCnt = 0;
+							resetBoard();
+							int dum;
+							while(!randomDone) { dum = 1;};
 							scenarioSwitch = false;
 							break;
 						}
+						// implement scenario
+						// finished scenario
+						if(scenarioSteps.size() == 0)
+						{
+							scenarioResetCnt++;
+							if(scenarioResetCnt == 4)
+							{
+
+								enableButtons();
+								randomDone = false;
+								scenarioResetCnt = 0;								
+							}
+							
+						}
+						if(scenarioSteps.size() > 0)
+						{
+							disableButtons();
+							Car car = null;
+							ScenarioStep step = scenarioSteps.get(0);
+							switch (step)
+							{
+							case IS_MAINT:
+								enableMain = true;
+								scenarioSteps.remove(0);
+								break;
+							case ADD_CAR:
+								try {
+									System.out.println("add");
+									car = addCarEnterance(); 
+									if(car == null)
+									{
+										break;
+									}
+								} catch (Exception e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
+								repaint();
+								System.out.println("got here");
+								scenarioList.add(car);
+								scenarioSteps.remove(0);
+								break;
+							case ADD_VIP_CAR:
+								try {
+									System.out.println("add");
+									car = addVipCarEnterance(); 
+									if(car == null)
+									{
+										break;
+									}
+								} catch (Exception e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
+								repaint();
+								scenarioList.add(car);
+								scenarioSteps.remove(0);
+								break;
+							case ADD_PED:
+								int randPed = random.nextInt(4);
+								try {
+									addPedestrian(randPed);
+								} catch (Exception e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
+								scenarioSteps.remove(0);
+								break;
+							case REMOVE_CAR:
+								repaint();
+								System.out.println("remove");
+								// we are the only ones to use this
+								// remove first car
+								for (Car carToRemove: scenarioList)
+								{
+									if(!carToRemove.isVipCar())
+									{
+										if(!carToRemove.isRemoved())
+										{
+											car = carToRemove;
+											break;
+										}
+									}
+								}
+//								car = scenarioList.get(0); 
+								if(car.getState() == CarStates.PARKED)
+								{
+									System.out.println("removed");
+									removeCarFromParkingLot(car.getId());
+									scenarioList.remove(car);
+									scenarioSteps.remove(0);
+								}
+								break;
+								
+							case REMOVE_VIP_CAR:
+								repaint();
+								System.out.println("remove vip");
+								// we are the only ones to use this
+								// remove first car
+								for (Car carToRemove: scenarioList)
+								{
+									if(carToRemove.isVipCar())
+									{
+										if(!carToRemove.isRemoved())
+										{
+											car = carToRemove;
+											break;
+										}
+									}
+								}
+//								car = scenarioList.get(0); 
+								if(car.getState() == CarStates.PARKED)
+								{
+									System.out.println("removed");
+									removeCarFromParkingLot(car.getId());
+									scenarioList.remove(car);
+									scenarioSteps.remove(0);
+								}
+								break;
+							}
+							
+						}
+//						if(scenarioSwitch)
+//						{
+//							System.out.println("finished while");
+//							carList.clear();
+//							scenarioSwitch = false;
+//							break;
+//						}
 						try {
 							executeAddCars();
 						} catch (Exception e1) {
@@ -470,7 +626,7 @@ public class ParkingSimulator extends JComponent {
 		
 		// Load images
 		try {
-			parkingBackground  = ImageIO.read(new File("img/background.jpg"));
+			parkingBackground  = ImageIO.read(new File("img/backgroundImage.jpg"));
 			parkingBackgroundFire  = ImageIO.read(new File("img/backgroundImageFire.png"));
 			gateOpen = ImageIO.read(new File("img/gateB.png"));
 			gateClose = ImageIO.read(new File("img/gateA.png"));
@@ -497,6 +653,9 @@ public class ParkingSimulator extends JComponent {
 		}
 		animationThread.start();
 		repaint();
+//		int dum;
+//		while(!scenarioSwitch) { };
+//		animationThread.stop();
 	}
 	
 	
@@ -504,7 +663,6 @@ public class ParkingSimulator extends JComponent {
 	private void paintParkingLot() throws Exception{
 	
 		try {	
-
 			Thread.sleep(50);
 			System.out.println("At the start of paint");
 			repaint();
@@ -519,11 +677,13 @@ public class ParkingSimulator extends JComponent {
 				}
 				repaint();
 				Thread.sleep(1000);
+				// TODO reset board
 				carList.clear();
 				
 			}
 			for(Car car : carList) {
-//				System.out.println("car" + car.getId() + " in state" + car.getState());
+				
+				System.out.println("car" + car.getId() + " in state" + car.getState());
 				switch (car.getState()) {
 				
 				case INIT :
@@ -675,7 +835,9 @@ public class ParkingSimulator extends JComponent {
 							car.setImg(carVipImageDown);
 						}
 						else
+						{
 							car.setImg(carImageDown);
+						}
 						car.setHeight(95);
 						car.setWidth(51);
 						
@@ -713,7 +875,6 @@ public class ParkingSimulator extends JComponent {
 						else
 						{
 							car.setImg(carImageDown);
-							
 						}
 						car.setHeight(95);
 						car.setWidth(51);
@@ -735,6 +896,7 @@ public class ParkingSimulator extends JComponent {
 						{
 							car.setImg(carVipImageDown);
 						}
+						else
 						{
 							car.setImg(carImageup);
 						}
@@ -913,6 +1075,7 @@ public class ParkingSimulator extends JComponent {
 
 	@Override
 	public void paintComponent(Graphics g) {
+//		System.out.println("hereeeee");
 		if(parkingLotMaintainance) 
 			g.drawImage(parkingBackgroundFire,0,0,null);
 		else
@@ -979,7 +1142,7 @@ public class ParkingSimulator extends JComponent {
 		}
 		for (int i = 0;i<9;i++) {
 			if(mainSpot[i]) {
-				System.out.println("spot: "+i);
+//				System.out.println("spot: "+i);
 				g.drawImage(spotMaintain, parkingLotConf.get(i)[0], parkingLotConf.get(i)[1], 80, 80, null);
 			}
 				
@@ -987,13 +1150,18 @@ public class ParkingSimulator extends JComponent {
 	}
 
 	static JFrame f = new JFrame("ParkingLot Simulator");
-	static JButton startBtnArr[] = new JButton[6];
+	
+	
+	
+	static 	JButton startBtnArr[] = new JButton[6];
+	static JButton b, b1, b2, r1, r2;
 	
 	public static void GUI()
 	{
+		int commandButtonX = 620;
 		f.setVisible(true);
-		JButton b=new JButton("Add Car");
-	    b.setBounds(360,420,120,30);  
+		b=new JButton("Add Car");
+	    b.setBounds(commandButtonX,520,120,30);  
 	    b.addActionListener(new ActionListener(){  
 	    		public void actionPerformed(ActionEvent e){  
 	    		try {
@@ -1005,8 +1173,8 @@ public class ParkingSimulator extends JComponent {
 	        }  
 	    });  
 	    f.add(b);
-	    JButton b1=new JButton("Add Vip Car");
-	    b1.setBounds(480,420,120,30);  
+	    b1=new JButton("Add Vip Car");
+	    b1.setBounds(commandButtonX + 130,520,120,30);  
 	    b1.addActionListener(new ActionListener(){  
 	    		public void actionPerformed(ActionEvent e){  
 	    		try {
@@ -1018,8 +1186,8 @@ public class ParkingSimulator extends JComponent {
 	        }  
 	    });  
 	    f.add(b1);
-	    JButton b2=new JButton("Add Pedestrian");
-	    b2.setBounds(600,420,150,30);  
+	    b2=new JButton("Add Pedestrian");
+	    b2.setBounds(commandButtonX + 260,520,150,30);  
 	    b2.addActionListener(new ActionListener(){  
 	    		public void actionPerformed(ActionEvent e){  
 	    		try {
@@ -1031,17 +1199,76 @@ public class ParkingSimulator extends JComponent {
 	        }  
 	    });  
 
+	    f.add(b2);
 
-	    int firstLineScenarioY = 450;
-	    int secLineScenarioY = 500;
+	    r1=new JButton("Remove Car");
+	    r1.setBounds(commandButtonX + 40,560,150,30);  
+	    r1.addActionListener(new ActionListener(){  
+	    		public void actionPerformed(ActionEvent e){  
+	    		try {
+	    			for(Car car : carList)
+	    			{
+	    				if(car.isVipCar())
+	    				{
+	    					continue;
+	    				}
+	    				if(car.getState() == CarStates.PARKED)
+	    				{
+	    					removeCarFromParkingLot(car.getId());
+	    				}
+	    				break;
+	    			}
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}  
+	        }  
+	    });  
+
+	    f.add(r1);
+	    
+	    r2=new JButton("Remove Vip Car");
+	    r2.setBounds(commandButtonX + 200,560,150,30);  
+	    r2.addActionListener(new ActionListener(){  
+	    		public void actionPerformed(ActionEvent e){  
+	    		try 
+	    		{
+	    			for(Car car : carList)
+	    			{
+	    				if(!car.isVipCar())
+	    				{
+	    					continue;
+	    				}
+	    				if(car.getState() == CarStates.PARKED)
+	    				{
+	    					removeCarFromParkingLot(car.getId());
+	    				}
+	    				break;
+	    			}				
+	    		} 
+	    		catch (Exception e1) 
+	    		{
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}  
+	        }  
+	    });  
+
+	    f.add(r2);
+
+	    int firstLineScenarioY = 510;
+	    int secLineScenarioY = 570;
 	    
 	    startBtnArr[0]=new JButton("0");
-	    startBtnArr[0].setBounds(450,firstLineScenarioY,50,50);  
+	    startBtnArr[0].setBounds(195,firstLineScenarioY,50,50);  
 	    startBtnArr[0].addActionListener(new ActionListener(){  
 	    		public void actionPerformed(ActionEvent e){  
 	    		try {
 						scenarioSwitch = true;
 						Scenarios.createZeroScenario();
+//						while(scenarioSwitch);
+//						Scenarios.createTestScenario();
+//						implementScenario();
 				} catch (Exception e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
@@ -1053,11 +1280,11 @@ public class ParkingSimulator extends JComponent {
 	    
 	    
 	    startBtnArr[1]=new JButton("1");
-	    startBtnArr[1].setBounds(500,firstLineScenarioY,50,50);  
+	    startBtnArr[1].setBounds(255,firstLineScenarioY,50,50);  
 	    startBtnArr[1].addActionListener(new ActionListener(){  
 	    		public void actionPerformed(ActionEvent e){  
 	    		try {
-						scenarioSwitch = true;
+						scenarioSwitch = true;			
 						Scenarios.createFirstScenario();
 				} catch (Exception e1) {
 					// TODO Auto-generated catch block
@@ -1071,7 +1298,7 @@ public class ParkingSimulator extends JComponent {
 	    
 	    
 	    startBtnArr[2]=new JButton("2");
-	    startBtnArr[2].setBounds(550,firstLineScenarioY,50,50);  
+	    startBtnArr[2].setBounds(315,firstLineScenarioY,50,50);  
 	    startBtnArr[2].addActionListener(new ActionListener(){  
 	    		public void actionPerformed(ActionEvent e){  
 	    		try {
@@ -1087,7 +1314,7 @@ public class ParkingSimulator extends JComponent {
 	    f.add(startBtnArr[2]);
 	    
 	    startBtnArr[3]=new JButton("3");
-	    startBtnArr[3].setBounds(450,secLineScenarioY,50,50);  
+	    startBtnArr[3].setBounds(195,secLineScenarioY,50,50);  
 	    startBtnArr[3].addActionListener(new ActionListener(){  
 	    		public void actionPerformed(ActionEvent e){  
 	    		try {
@@ -1103,7 +1330,7 @@ public class ParkingSimulator extends JComponent {
 	    f.add(startBtnArr[3]);
 	    
 	    startBtnArr[4]=new JButton("4");
-	    startBtnArr[4].setBounds(500,secLineScenarioY,50,50);  
+	    startBtnArr[4].setBounds(255,secLineScenarioY,50,50);  
 	    startBtnArr[4].addActionListener(new ActionListener(){  
 	    		public void actionPerformed(ActionEvent e){  
 	    		try {
@@ -1119,7 +1346,7 @@ public class ParkingSimulator extends JComponent {
 	    f.add(startBtnArr[4]);
 	    
 	    startBtnArr[5]=new JButton("5");
-	    startBtnArr[5].setBounds(550,secLineScenarioY,50,50);  
+	    startBtnArr[5].setBounds(315,secLineScenarioY,50,50);  
 	    startBtnArr[5].addActionListener(new ActionListener(){  
 	    		public void actionPerformed(ActionEvent e){  
 	    		try {
@@ -1135,7 +1362,6 @@ public class ParkingSimulator extends JComponent {
 	    f.add(startBtnArr[5]);
 	    
 	    
-	    f.add(b2);
 	    
 	    f.setLayout(null);  
 	    f.setVisible(true);
@@ -1149,6 +1375,11 @@ public class ParkingSimulator extends JComponent {
 		{
 			startBtnArr[i].setEnabled(true);
 		}
+		b.setEnabled(true);
+		b1.setEnabled(true);
+		b2.setEnabled(true);
+		r1.setEnabled(true);
+		r2.setEnabled(true);
 	}
 	
 	
@@ -1158,22 +1389,31 @@ public class ParkingSimulator extends JComponent {
 		{
 			startBtnArr[i].setEnabled(false);
 		}
+		b.setEnabled(false);
+		b1.setEnabled(false);
+		b2.setEnabled(false);
+		r1.setEnabled(false);
+		r2.setEnabled(false);
 	}
 	
 	// initialize Parking Lot 
 	public static void main(String args[]) throws Exception {
 		ParkingSpotsConfig.initMap();
 		f.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-		f.setSize(1093, 590);
+		f.setSize(1113, 673);
 		ParkingSimulator parkingLot = new ParkingSimulator();
 		f.setContentPane(parkingLot);
 		GUI();
-		Scenarios.createRandomScenario();
-//		Scenarios.createThirdScenario();
-//		Scenarios.createSecondScenario();
-//		Scenarios.createFifthScenario();
-//		Scenarios.createTestScenario();
-		
+//		Scenarios.createRandomScenario();
+		while(true)
+		{
+			if(!randomDone)
+			{
+				System.out.println("here");
+				Scenarios.createRandomScenario();
+//				System.out.println("random done here");
+			}
+		}
 	}
 	
 
