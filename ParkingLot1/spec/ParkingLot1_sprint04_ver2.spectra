@@ -5,14 +5,13 @@ define
 	numOfSpots := 7;
 	numOfSpotsPlusOne := numOfSpots + 1;
 	numOfSpotsPlusTwo := numOfSpots + 2;
-	killAll := 10;
 	
 	
 //Environment controlled input variables (vehicles and pedestrians)
 env boolean carEntrance; // car is waiting to enter the parking lot
 env boolean carExit; // car is waiting to exit the parking lot
 env boolean[numOfSpotsPlusOne] carInSpot; 
-env boolean enableMain;
+
 
 env boolean carVipEntrance;
 env boolean carVipExit;
@@ -33,22 +32,21 @@ sys boolean gateVipExit;
 sys boolean pedetrianRightLight;
 sys boolean pedetrianLeftLight;
 
-sys boolean dummy;
+
 
 // assumptions
-asm G ((carEntrance & freeSpot != numOfSpotsPlusOne & !pedetrianRightLight & !gateVipEntrance)-> !(next(carEntrance)));
+asm G ((carEntrance & freeSpot != 8 & !pedetrianRightLight & !gateVipEntrance)-> !(next(carEntrance)));
 asm G carExit -> !(next(carExit));
 
 asm G carVipExit -> !(next(carVipExit));
-asm G ((carVipEntrance & freeSpot != numOfSpotsPlusOne & !pedetrianLeftLight)-> !(next(carVipEntrance)));
+asm G ((carVipEntrance & freeSpot != 8 & !pedetrianLeftLight)-> !(next(carVipEntrance)));
+//asm G forall j in Int(0..numOfSpots).(spotMaintenance[j]->! carInSpot[j]);
+
 
 asm !carExit; // at the beginning the parking lot is empty
 asm !carEntrance; // at the beginning the parking lot is empty
 asm !carVipEntrance;
 asm !carVipExit;
-
-asm G enableMain -> next(enableMain);
-asm G !enableMain -> !next(enableMain);
 
 //At the beginning the gates are closed.
 gar !gateExit;
@@ -61,7 +59,7 @@ gar GF !pedetrianRightLight;
 gar GF !pedetrianLeftLight;
 
 
-gar G (carEntrance & freeSpot != numOfSpotsPlusOne & !gateVipEntrance & !pedetrianRightLight) -> gateEntrance; // if there are spots available in the parking lot - open the gate
+gar G (carEntrance & freeSpot != 8 & !gateVipEntrance & !pedetrianRightLight) -> gateEntrance; // if there are spots available in the parking lot - open the gate
 gar G (carExit ) -> gateExit; // if a car wants to exit - open the exit gate
 gar G (carVipExit ) -> gateVipExit; // if a car wants to exit - open the exit gate
 
@@ -79,7 +77,7 @@ gar G (!carEntrance) -> (!gateEntrance);
 gar G (!carExit) -> (!gateExit);
 
 gar G freeSpot = 8 -> !gateVipEntrance;
-gar G (carVipEntrance & freeSpot != numOfSpotsPlusOne & !pedetrianLeftLight) -> gateVipEntrance; 
+gar G (carVipEntrance & freeSpot != 8 & !pedetrianLeftLight) -> gateVipEntrance; 
 gar G gateVipEntrance -> !gateEntrance;
 
 gar G gateVipEntrance -> ! next(gateVipEntrance); // the gate opens for each car once at a time
@@ -96,22 +94,10 @@ gar G forall i in Int(0..numOfSpots).(spotLight[i] <->carInSpot[i]);
 // find minimum of free spots array
 gar G exists i in Int(0..numOfSpotsPlusOne).forall j in Int(0..numOfSpotsPlusOne).(j<i->(spotLight[j]=true | spotMaintenance[j] = true)) &spotMaintenance[i] = false & spotLight[i]=false & freeSpot=i;  
 
-
-// counts how many regular cars are currently in the parking lot
-counter spotsCounter(0..killAll) {
-	spotsCounter = 0;
-	inc: (!parkingLotMaintainace) & (gateEntrance | gateVipEntrance) & !dummy; 
-	reset: parkingLotMaintainace | dummy;
-	overflow: false;
-}
-
-gar G enableMain -> (spotsCounter < killAll -> !parkingLotMaintainace);
-gar G !enableMain -> !parkingLotMaintainace;
-
-gar G dummy;
+gar trig [true]*([gateEntrance | gateVipEntrance][true]*){3} |=>[parkingLotMaintainace];
+gar trig ([true]*([parkingLotMaintainace][true]*))|=>[!parkingLotMaintainace]{3};
 
 gar G forall i in Int(0..numOfSpots).carInSpot[i] -> !spotMaintenance[i];
-gar G forall i in Int(0..numOfSpots).carInSpot[i] -> !next(spotMaintenance[i]);
 
 gar pRespondsToS(pedestrianRight, pedetrianRightLight);
 gar pRespondsToS(pedestrianLeft, pedetrianLeftLight);
@@ -121,7 +107,14 @@ asm G parkingLotMaintainace -> (forall k in Int(0..numOfSpots).(next(carInSpot[k
 gar G parkingLotMaintainace -> (forall k in Int(0..numOfSpotsPlusOne).(next(spotLight[k] = false)));
 gar G parkingLotMaintainace -> (forall k in Int(0..numOfSpotsPlusOne).(next(spotMaintenance[k] = false)));
 
-gar G forall k in Int(0..numOfSpots).spotMaintenance[k]-> (forall i in Int(0..numOfSpots). (!(i=k)) -> (!spotMaintenance[i]));
+gar G spotMaintenance[0]-> !(spotMaintenance[1]|spotMaintenance[2]|spotMaintenance[3]|spotMaintenance[4]|spotMaintenance[5]|spotMaintenance[6]|spotMaintenance[7]);
+gar G spotMaintenance[1]-> !(spotMaintenance[0]|spotMaintenance[2]|spotMaintenance[3]|spotMaintenance[4]|spotMaintenance[5]|spotMaintenance[6]|spotMaintenance[7]);
+gar G spotMaintenance[2]-> !(spotMaintenance[1]|spotMaintenance[0]|spotMaintenance[3]|spotMaintenance[4]|spotMaintenance[5]|spotMaintenance[6]|spotMaintenance[7]);
+gar G spotMaintenance[3]-> !(spotMaintenance[1]|spotMaintenance[2]|spotMaintenance[0]|spotMaintenance[4]|spotMaintenance[5]|spotMaintenance[6]|spotMaintenance[7]);
+gar G spotMaintenance[4]-> !(spotMaintenance[1]|spotMaintenance[2]|spotMaintenance[3]|spotMaintenance[0]|spotMaintenance[5]|spotMaintenance[6]|spotMaintenance[7]);
+gar G spotMaintenance[5]-> !(spotMaintenance[1]|spotMaintenance[2]|spotMaintenance[3]|spotMaintenance[4]|spotMaintenance[0]|spotMaintenance[6]|spotMaintenance[7]);
+gar G spotMaintenance[6]-> !(spotMaintenance[1]|spotMaintenance[2]|spotMaintenance[3]|spotMaintenance[4]|spotMaintenance[5]|spotMaintenance[0]|spotMaintenance[7]);
+gar G spotMaintenance[7]-> !(spotMaintenance[1]|spotMaintenance[2]|spotMaintenance[3]|spotMaintenance[4]|spotMaintenance[5]|spotMaintenance[6]|spotMaintenance[0]);
 
 
 asm G parkingLotMaintainace -> next(!carVipExit);
