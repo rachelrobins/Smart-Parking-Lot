@@ -213,8 +213,8 @@ gar G (!carExit) -> (!gateExit);
 gar G (!carVipEntrance) -> (!gateVipEntrance);
 gar G (!carVipExit) -> (!gateVipExit);
 
-gar G freeSpot = 8 -> !gateEntrance;
-gar G freeSpot = 8 -> !gateVipEntrance;
+gar G freeSpot = numOfSpotsPlusOne -> !gateEntrance;
+gar G freeSpot = numOfSpotsPlusOne -> !gateVipEntrance;
 
 
 
