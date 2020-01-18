@@ -11,5 +11,4 @@ public enum CarStates {
 	PREPARE_TO_EXIT,
 	WAIT_BEFORE_EXIT,
 	EXITING,
-	
 }

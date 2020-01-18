@@ -4,26 +4,29 @@ import java.io.File;
 
 import javax.imageio.ImageIO;
 
+/* This class represents cars an an object in the parking lot */ 
+
 public class Car {
 	// fields of car
-	private int id;
-	private BufferedImage img;
-	private CarStates state;
-	private int X;
-	private int Y;
+	private int id; // id of car
+	private BufferedImage img; // red for VIP and van for regular
+	private CarStates state; // as defined in carStates class
+	private int X; // x-axis position
+	private int Y; // y-axis position
 	private int width;
 	private int height;
-	private boolean isRemoved;
-	private static int counter = 0;
-	static int carsVipInQ = 0;
-
-	static int carsInQ = 0;
-	static int carsInExitQ = 0;
-	static int carsVipInExitQ = 0;
-
-	private int parkingSpot = -1;
-	private boolean vipCar;
+	private boolean isRemoved; // whether the car was removed from parking lot
+	private static int counter = 0; // counts how many cars were created- to determine id
+	private int parkingSpot = -1; // in which spot the car is parking, default is -1 which means it doesn't park
+	private boolean vipCar; // whether the car is VIP
 	
+	// static variables of car class
+	static int carsVipInQ = 0; // how many cars are waiting in vip queue(max 1)
+	static int carsInQ = 0; // how many cars are waiting in regular queue(max 2)
+	static int carsInExitQ = 0; // how many cars are waiting in regular exit queue(max 1)
+	static int carsVipInExitQ = 0; // how many cars are waiting in Vip exit queue(max 1)
+
+	// car constructor
 	public Car(boolean vipCar)
 	{
 		try {
@@ -50,9 +53,7 @@ public class Car {
 			this.setVipCar(vipCar);
 		}
 		catch (Exception e)
-		{
-			
-		}
+		{}
 	}
 
 	public BufferedImage getImg() {
@@ -98,18 +99,12 @@ public class Car {
 	public CarStates getState() {
 		return state;
 	}
-
+	
+	// here we make sure the car moves to next step, changing variables to adjust to state
 	public void updateState(CarStates state) {
-//		if(this.state == CarStates.IN_QUEUE_SECOND) 
-//		{
-//			if(!this.isVipCar())
-//				carsInQ--;
-//			else
-//				carsVipInQ--;
-//		}
-		
 		this.state = state;
-		if(state==CarStates.INIT)
+		
+		if(state == CarStates.INIT)
 		{
 			if(!this.isVipCar())
 			{
@@ -121,7 +116,7 @@ public class Car {
 			}
 		}
 		
-		if(state==CarStates.ENTER_PARKING_LOT)
+		if(state == CarStates.ENTER_PARKING_LOT)
 		{
 			if(!this.isVipCar())
 			{
@@ -133,7 +128,7 @@ public class Car {
 			}
 		}
 		
-		if(state==CarStates.PREPARE_TO_EXIT)
+		if(state == CarStates.PREPARE_TO_EXIT)
 		{
 			if(!this.isVipCar())
 			{
@@ -145,7 +140,7 @@ public class Car {
 			}
 		}
 		
-		if(state==CarStates.EXITING)
+		if(state == CarStates.EXITING)
 		{
 			if(!this.isVipCar())
 			{
@@ -156,13 +151,13 @@ public class Car {
 				carsVipInExitQ--;
 			}
 		}
-		
 	}
 	
-	public void updateState(CarStates state, int parkingSpot) {
+	// updateState overload - if we get int as well it means we need to update parking spot field
+	public void updateState(CarStates state, int parkingSpot) 
+	{
 		this.updateState(state);
 		this.setParkingSpot(parkingSpot);
-
 	}
 
 	public int getId() {

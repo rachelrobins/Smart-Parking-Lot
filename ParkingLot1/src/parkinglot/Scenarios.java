@@ -13,20 +13,25 @@ enum ScenarioStep {
 }
 
 public class Scenarios {
+	
+	// Auxiliary functions 
 	public static LinkedList<Car> safeAddCar(LinkedList<Car> carList) throws Exception{
-		Car car = ParkingSimulator.addCarEnterance();
+		Car car = API.addCarEnterance();
 		if (car!=null) 
 			carList.add(car);
 		return carList;
 		
 	}
+	
 	public static LinkedList<Car> safeAddVipCar(LinkedList<Car> carList) throws Exception{
-		Car car = ParkingSimulator.addVipCarEnterance();
+		Car car = API.addVipCarEnterance();
 		if (car!=null) 
 			carList.add(car);
 		return carList;
 		
 	}
+	
+	
 	// Zero Scenario
 	// One car enters and exits the parking lot
 	public static void createZeroScenario() throws Exception
@@ -73,17 +78,17 @@ public class Scenarios {
 	}
 	
 
-	
 	// Forth Scenario
 	// Vehicles enters the parking lot and suddenly a fire bursts.
 	public static void createForthScenario() throws Exception
 	{
 		ParkingSimulator.scenarioSteps.add(ScenarioStep.ENABLE_MAINT);			
-		for(int i = 0; i < 4; i++)
+		for(int i = 0; i < 5; i++)
 		{
 			ParkingSimulator.scenarioSteps.add(ScenarioStep.ADD_VIP_CAR);			
 			ParkingSimulator.scenarioSteps.add(ScenarioStep.ADD_CAR);
 		}
+		ParkingSimulator.scenarioSteps.add(ScenarioStep.REMOVE_CAR);
 	}
 	
 	
@@ -106,12 +111,13 @@ public class Scenarios {
 		Random rand = new Random();
 		while(true)
 		{
-			if(ParkingSimulator.scenarioSwitch)
+			// handler - when we switch to real scenario
+			if(ParkingSimulator.scenarioSwitchFromRandom)
 			{
-				System.out.println("finished random");
 				ParkingSimulator.randomDone = true;
 				return;
 			}
+			
 			// Randomize Pedestrians
 			for(int i = 0; i < 4; i++)
 			{
@@ -125,11 +131,12 @@ public class Scenarios {
 			{
 				if(pedEntering[i] == 0)
 				{
-					Pedestrian ped = ParkingSimulator.addPedestrian(i);
+					Pedestrian ped = API.addPedestrian(i);
 					peds.add(ped);
 					pedEntering[i] = 1;
 				}
 			}
+			
 			for(Pedestrian ped : peds)
 			{
 				if(ped.state == Pedestrian.States.ENETERING || ped.state == Pedestrian.States.WAITING)
@@ -191,7 +198,6 @@ public class Scenarios {
 			
 			if(carEntering)
 			{
-				Car car;
 				randVip = rand.nextBoolean();
 				if(randVip)
 				{
@@ -220,7 +226,7 @@ public class Scenarios {
 					Car carToRemove = parkedCars.get(exitRandomCar);
 					if(!carToRemove.isRemoved())
 					{
-						ParkingSimulator.removeCarFromParkingLot(carToRemove.getId());
+						API.removeCarFromParkingLot(carToRemove.getId());
 						counter--;
 						carsInParkingLot.remove(exitRandomCar);
 					}
@@ -228,9 +234,10 @@ public class Scenarios {
 				}
 				parkedCars.clear();
 			}
-			if(ParkingSimulator.scenarioSwitch)
+			 
+			// handler - when we switch to real scenario
+			if(ParkingSimulator.scenarioSwitchFromRandom)
 			{
-				System.out.println("finished random");
 				return;
 			}
 			Thread.sleep(3000);
