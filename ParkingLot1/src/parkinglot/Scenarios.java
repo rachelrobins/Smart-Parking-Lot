@@ -62,6 +62,11 @@ public class Scenarios {
 			ParkingSimulator.scenarioSteps.add(ScenarioStep.ADD_VIP_CAR);			
 			ParkingSimulator.scenarioSteps.add(ScenarioStep.ADD_CAR);
 		}
+//		for(int i = 0; i < 4; i++)
+//		{
+//			ParkingSimulator.scenarioSteps.add(ScenarioStep.REMOVE_VIP_CAR);			
+//			ParkingSimulator.scenarioSteps.add(ScenarioStep.REMOVE_CAR);
+//		}
 	}
 	
 	// Third Scenario 
@@ -109,6 +114,8 @@ public class Scenarios {
 		boolean randVip;
 		int pedEntering[] = new int [4];
 		Random rand = new Random();
+		ParkingSimulator.speed = 5;
+
 		while(true)
 		{
 			// handler - when we switch to real scenario
@@ -146,14 +153,14 @@ public class Scenarios {
 				else
 				{
 					pedsWaiting[ped.position] = false;
-					pedEntering[ped.position] = 2;
+					pedEntering[ped.position] = 11;
 				}
 			}
 			for(int i = 0; i < 4; i++)
 			{
 				Pedestrian pedToDelete = null;
 				boolean del = false;
-				if(pedEntering[i] == 2)
+				if(pedEntering[i] == 11)
 				{
 					for(Pedestrian ped : peds)
 					{
@@ -238,6 +245,7 @@ public class Scenarios {
 			// handler - when we switch to real scenario
 			if(ParkingSimulator.scenarioSwitchFromRandom)
 			{
+				ParkingSimulator.randomDone = true;
 				return;
 			}
 			Thread.sleep(3000);

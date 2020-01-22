@@ -24,9 +24,13 @@ public class ParkingSimulator extends JComponent {
 	
 	Random random = new Random();
 	int numOfSpots = 8;
+	// usefull flags
 	public static boolean scenarioSwitchFromRandom = false;
 	public static boolean scenarioSwitchToRandom = false;
-
+	public static boolean scenario4Switch = false; 
+	public static int speed = 5;
+	public static boolean cleanedScenarioFlag = true;
+	
 	// system variables
 	boolean gateEntrance = false;
 	boolean gateExit;
@@ -64,7 +68,7 @@ public class ParkingSimulator extends JComponent {
 	
 	
 	// simulator data bases
-	static LinkedList<Car> carList = new LinkedList<Car>();
+	static volatile LinkedList<Car> carList = new LinkedList<Car>();
 	
 	
 	// scenario list
@@ -114,8 +118,10 @@ public class ParkingSimulator extends JComponent {
 					// every time we switch from random scenario to real scenario or vise versa
 					// we reset the executor
 					executor = new ControllerExecutor(true, false);
-					while (true) {	
-						
+					GUI.enableButtons();
+					
+					while (true) 
+					{	
 						// finished scenario
 						if(scenarioSteps.size() == 0 && backToRandom)
 						{
@@ -131,7 +137,7 @@ public class ParkingSimulator extends JComponent {
 						}
 						
 						// if we are not in scenario mode
-						if(scenarioSteps.size() == 0 && !backToRandom)
+						if(scenarioSteps.size() == 0 && !backToRandom && !scenarioSwitchToRandom)
 						{
 							GUI.enableCommands();
 						}
@@ -139,26 +145,69 @@ public class ParkingSimulator extends JComponent {
 						// if we need to switch to random
 						if(scenarioSwitchToRandom)
 						{
-							Auxiliary.resetBoard();
-							scenarioSwitchToRandom = false;
-							GUI.enableButtons();
-							break;
+							speed = 2;							
+							for(Car car: carList)
+							{
+								if(car.getState() == CarStates.PARKED)
+								{
+									API.removeCarFromParkingLot(car.getId());
+								}
+							}
+							
+							
+							if(carList.size() == 0) 
+							{ 
+								scenarioSwitchToRandom = false;
+								GUI.enableButtons();
+								cleanedScenarioFlag = true;
+							}	
+							
+							if(scenario4Switch)
+							{
+								scenarioSwitchToRandom = false;
+								Auxiliary.resetBoard();
+								cleanedScenarioFlag = true;
+								scenario4Switch = false;
+								randomDone = false;
+								scenarioResetCnt = 0;
+								
+								backToRandom = false;
+								scenarioList.clear();
+								break;
+							}
 						}
 						
 						// if we need to switch to a scenario
 						if(scenarioSwitchFromRandom)
 						{
+							speed = 2;
 							scenarioResetCnt = 0;
-							Auxiliary.resetBoard();
-
-							while(!randomDone) { dum = 1; };	
-							scenarioSwitchFromRandom = false;
-							break;
+//							Auxiliary.resetBoard();
+							for(Car car: carList)
+							{
+								if(car.getState() == CarStates.PARKED)
+								{
+									API.removeCarFromParkingLot(car.getId());
+								}
+							}
+							if(carList.size() == 0 && randomDone) 
+							{ 
+								scenarioSwitchFromRandom = false;
+							}	
+							
+							if(scenario4Switch && randomDone)
+							{
+								scenarioSwitchFromRandom = false;
+								Auxiliary.resetBoard();
+								break;
+							}
+							
 						}
 						
 						// implement scenario
-						if(scenarioSteps.size() > 0)
+						if(scenarioSteps.size() > 0 && !scenarioSwitchFromRandom)
 						{
+							speed = 5;
 							GUI.disableButtons();
 							Car car = null;
 							ScenarioStep step = scenarioSteps.get(0);
@@ -265,7 +314,6 @@ public class ParkingSimulator extends JComponent {
 						
 						try {
 							Auxiliary.executeAddCars();
-							
 						} catch (Exception e1) {
 							e1.printStackTrace();
 						}
@@ -494,7 +542,7 @@ public class ParkingSimulator extends JComponent {
 					}
 					for (int i = 0; i < stepsToMove; i++) {
 						repaint();
-						Thread.sleep(10);
+						Thread.sleep(speed);
 						if(car.isVipCar())
 						{
 							car.setX(car.getX()+1);
@@ -524,7 +572,7 @@ public class ParkingSimulator extends JComponent {
 					{
 						for (int i = 0; i < 130; i++) {
 							repaint();
-							Thread.sleep(10);
+							Thread.sleep(speed);
 							if(car.isVipCar())
 							{
 								car.setX(car.getX()+1);
@@ -554,7 +602,7 @@ public class ParkingSimulator extends JComponent {
 					{
 						for (int i = 0; i < 105; i++) {
 							repaint();
-							Thread.sleep(10);
+							Thread.sleep(speed);
 							if(!car.isVipCar())
 								car.setX(car.getX()-1);
 							else
@@ -583,7 +631,7 @@ public class ParkingSimulator extends JComponent {
 						
 					for (int i = 0; i <straight; i++) {
 						repaint();
-						Thread.sleep(10);
+						Thread.sleep(speed);
 						if(car.isVipCar())
 							car.setX(car.getX()+1);
 						else
@@ -604,7 +652,7 @@ public class ParkingSimulator extends JComponent {
 					}
 					for (int i = 0; i < up; i++) {
 						repaint();
-						Thread.sleep(10);
+						Thread.sleep(speed);
 						car.setY(car.getY()-1);
 					}
 
@@ -624,7 +672,7 @@ public class ParkingSimulator extends JComponent {
 					}
 					for (int i = 0; i < down; i++) {
 						repaint();
-						Thread.sleep(10);
+						Thread.sleep(speed);
 						car.setY(car.getY()+1);
 					}
 					car.updateState(CarStates.PARKED);
@@ -660,7 +708,7 @@ public class ParkingSimulator extends JComponent {
 					
 					for (int i = 0; i < upExit; i++) {
 						repaint();
-						Thread.sleep(10);
+						Thread.sleep(speed);
 						if(car.isVipCar())
 							car.setY(car.getY()+1);
 						else
@@ -685,7 +733,7 @@ public class ParkingSimulator extends JComponent {
 					
 					for (int i = 0; i < downExit; i++) {
 						repaint();
-						Thread.sleep(10);
+						Thread.sleep(speed);
 						if(car.isVipCar())
 							car.setY(car.getY()-1);
 						else
@@ -701,7 +749,7 @@ public class ParkingSimulator extends JComponent {
 					car.setWidth(95);
 					for (int i = 0; i <straightExit; i++) {
 						repaint();
-						Thread.sleep(10);
+						Thread.sleep(speed);
 						if(car.isVipCar())
 							car.setX(car.getX()+1);
 						else
@@ -748,7 +796,7 @@ public class ParkingSimulator extends JComponent {
 					if(gate) {
 						for (int i = 0; i < 500; i++) {
 							repaint();
-							Thread.sleep(10);
+							Thread.sleep(speed);
 							if(car.isVipCar())
 								car.setX(car.getX()+1);
 							else
@@ -816,7 +864,7 @@ public class ParkingSimulator extends JComponent {
 		{
 			for (int i = 0; i < 100; i++) {
 				repaint();
-				Thread.sleep(10);
+				Thread.sleep(speed);
 				if(pedDirUp)
 				{
 					ped.y++;
@@ -835,7 +883,7 @@ public class ParkingSimulator extends JComponent {
 			{
 				for (int i = 0; i < 300; i++) {
 					repaint();
-					Thread.sleep(10);
+					Thread.sleep(speed);
 					if(pedDirUp)
 					{
 						ped.y++;

@@ -15,8 +15,9 @@ public class App {
 			
 			while(true)
 			{
-				if(!ParkingSimulator.randomDone)
+				if(!ParkingSimulator.randomDone && ParkingSimulator.cleanedScenarioFlag)
 				{
+					ParkingSimulator.cleanedScenarioFlag = false;
 					ParkingSimulator.enableMain = false;
 					Scenarios.createRandomScenario();
 				}

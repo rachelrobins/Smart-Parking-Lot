@@ -184,6 +184,7 @@ public class GUI {
 	    		public void actionPerformed(ActionEvent e){  
 	    		try {
 						disableButtons();
+						ParkingSimulator.scenario4Switch = true;
 						ParkingSimulator.scenarioSwitchFromRandom = true;
 						Scenarios.createForthScenario();
 				} catch (Exception e1) {

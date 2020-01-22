@@ -53,9 +53,12 @@ public class API {
 		{
 			if(car.getId() == carID)
 			{
-				car.setRemoved(true);
-				Auxiliary.carsToRemove.add(car);
-				return;	
+				if(car.getState() == CarStates.PARKED && !car.isRemoved())
+				{
+					car.setRemoved(true);
+					Auxiliary.carsToRemove.add(car);
+					return;
+				}
 			}
 		}
 	}
